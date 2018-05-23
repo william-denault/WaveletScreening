@@ -1,0 +1,22 @@
+Package: WaveletScreaming
+Type: Package
+Title: A package to perform Wavelet Screaming on GWAS data 
+Version: 0.1.0
+Author: William Denault
+Maintainer: William Denault <william.denault@gmail.com>
+Description: Functions to perform genome wide screeening association through wavelet transform
+License: GPL (>= 2)
+Encoding: UTF-8
+LazyData: true
+Depends:
+    ggplot2 (>= 2.2.1),
+    rARPACK (>= 0.11-0),
+    parallel (>= 3.4.3),
+    snow (>= 0.4-2),
+    corpcor (>= 1.6.9),
+    data.table (>= 1.10.4-3),
+    wavelets (>= 0.3-0),
+    wavethresh (>= 4.6.8),
+    EbayesThresh (>= 1.4-12)
+RoxygenNote: 6.0.1
+ 
