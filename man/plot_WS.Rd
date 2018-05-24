@@ -4,7 +4,7 @@
 \alias{plot_WS}
 \title{Data visualisation for Wavelet screaming output}
 \usage{
-plot_WS(res, bp, lev_res, fill)
+plot_WS(res, bp, lev_res, fill, dg)
 }
 \arguments{
 \item{res}{Output of Wavelet_screaming.}
@@ -14,6 +14,8 @@ plot_WS(res, bp, lev_res, fill)
 \item{lev_res}{the maximum level of resolution needed, has to be less or equal to the request level of resolution in the Wavelet_screaming.}
 
 \item{fill}{logical, if not provide set as TRUE.}
+
+\item{dg}{numericla, the number of digits display on the x axe. If missing set at 3}
 }
 \value{
 return a ggplot

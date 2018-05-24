@@ -4,23 +4,25 @@
 #'@param bp a vector of the base pairs position of the loci, you can provide only the starting point and the end point of the loci. If missing set as 0, 1.
 #'@param lev_res the maximum level of resolution needed, has to be less or equal to the request level of resolution in the Wavelet_screaming.
 #'@param fill logical, if not provide set as TRUE.
+#'@param dg numericla, the number of digits display on the x axe. If missing set at 3
 #'@return return a ggplot
 #' @details The function generate a ggplot from the wavelet screaming output. It represents the Bayes factor for the different levels scales of the wavelets decomposition.
 #'The size and the darkness of the points that represent the Bayes factor are scaled by the value of the Bayes factors.
 #'If a Bayes factor is greater than 1 then the region that represent the Bayes factor is filled up in order to give an orverview of the size and the origin of the genetic signal.
 #'@seealso \code{\link{Wavelet_screaming}}
 
-plot_WS <- function(res,bp,lev_res,fill)
+plot_WS <- function(res,bp,lev_res,fill,dg)
 {
 
   if(missing(fill))
   {
     fill=TRUE
   }
-  if(missing(bp))
+  if(missing(dg))
   {
-    bp=c(0,1)
+    dg=3
   }
+
 
   res <- res[-c(1:(lev_res+2))]
 
@@ -73,7 +75,6 @@ plot_WS <- function(res,bp,lev_res,fill)
   ps <-c(res,res)
 
   df_fill <- data.frame(xfil=xfil ,y=my,group=gl,col =mycol,x=mx, ps =ps)
-
   if(fill==TRUE)
   {
 
@@ -88,7 +89,7 @@ plot_WS <- function(res,bp,lev_res,fill)
       ylab("Level of resolution")+
       xlab("Base pair")+
       scale_y_continuous(breaks=unique(df_fill$y ), labels =0:lev_res)+
-      scale_x_continuous(breaks=seq(0,1 ,by=0.125), labels =seq(min(bp),max(bp),length.out = 9))+
+      scale_x_continuous(breaks=seq(0,1 ,by=0.125), labels =format(seq(min(bp),max(bp),length.out = 9), digits =dg, scientific = TRUE))+
       theme_bw()
 
 
