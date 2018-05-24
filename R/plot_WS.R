@@ -4,7 +4,7 @@
 #'@param bp a vector of the base pairs position of the loci, you can provide only the starting point and the end point of the loci. If missing set as 0, 1.
 #'@param lev_res the maximum level of resolution needed, has to be less or equal to the request level of resolution in the Wavelet_screaming.
 #'@param fill logical, if not provide set as TRUE.
-#'@param dg numericql, the number of digits display on the x axe. If missing set at 3.
+#'@param dg numerical, the number of digits display on the x axe. If missing set at 3.
 #'@return return a ggplot
 #' @details The function generate a ggplot from the wavelet screaming output. It represents the Bayes factor for the different levels scales of the wavelets decomposition.
 #'The size and the darkness of the points that represent the Bayes factor are scaled by the value of the Bayes factors.
