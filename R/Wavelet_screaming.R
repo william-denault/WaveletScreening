@@ -113,6 +113,10 @@ Wavelet_screaming <- function(Y,loci,bp,counfounder,lev_res,sigma_b,coeftype,par
   #lev_res: lev of resolution for the wavelet filtering
   #sigma_b= Para of prior, should be <1 advised 0.2
 
+  print("Input dimensions:")
+  print(sprintf("Y: %i vector", length(Y)))
+  print(sprintf("loci: %i x %i", nrow(loci), ncol(loci)))
+  print(sprintf("bp: %i vector", length(bp)))
 
 
 
@@ -248,8 +252,10 @@ Wavelet_screaming <- function(Y,loci,bp,counfounder,lev_res,sigma_b,coeftype,par
     counfounder <- data.frame(counfounding =rep(1,length(Y)) )
   } else
   {
+    if(nrow(counfounder) != length(Y)) stop("Error: argument lengths not compatible")
     counfounder <- rbind(rep(1,length(Y)),counfounder)
   }
+  print(sprintf("counfounder: %i x %i", nrow(counfounder), ncol(counfounder)))
 
 
 
