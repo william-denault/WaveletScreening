@@ -98,11 +98,14 @@ lambda <- get_lambda1(Y,sigma_b = 0.2)
 #Simulation of the test statistics under the null distribution of
 # the Bayes factor
 Sim_gam <- Simu_Lambda_null(nsimu=10000, lambda=lambda,lev_res = 6)
-val <- res["Lambda"]
-pval <-c(length(Sim_gam[which(Sim_gam>val)])+1)/(length(Sim_gam)+1)
+#val <- res["Lambda"]
+#pval <-c(length(Sim_gam[which(Sim_gam>val)])+1)/(length(Sim_gam)+1)
+#pval
+x <-  Simu_gam
+z = gpdFit(x, u = min(x), type = "mle")
+z
+pval <- 1-fExtremes::pgpd(q=res["Lambda"], xi=z@fit$par.ests["xi"], mu=z@parameter$u, beta=z@fit$par.ests["beta"])
 pval
-
-
 ##############
 #Visualisation
 ##############

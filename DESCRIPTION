@@ -17,6 +17,7 @@ Depends:
     data.table (>= 1.10.4-3),
     wavelets (>= 0.3-0),
     wavethresh (>= 4.6.8),
-    EbayesThresh (>= 1.4-12)
+    EbayesThresh (>= 1.4-12),
+    fExtremes (>= 3042.82)
 RoxygenNote: 6.0.1
  

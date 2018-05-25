@@ -15,7 +15,7 @@ plot_WS(res, bp, lev_res, fill, dg)
 
 \item{fill}{logical, if not provide set as TRUE.}
 
-\item{dg}{numericla, the number of digits display on the x axe. If missing set at 3}
+\item{dg}{numerical, the number of digits display on the x axe. If missing set at 3.}
 }
 \value{
 return a ggplot
