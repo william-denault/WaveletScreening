@@ -54,7 +54,7 @@ slice_definition <- function(bp,Loci_size=1e6,thresh=1e4,Chr=NA)
   #df output to define the extraction
   df <- data.frame(Chr= numeric(),posStart= numeric(),posEnd= numeric())
 
-  for(i in 1:(length(possible_loci)-1))
+  for(i in 1:(length(my_index)-1))
   {
   	my_diff <- bp[my_index][i+1]-bp[my_index][i]
  
