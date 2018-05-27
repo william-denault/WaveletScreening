@@ -106,8 +106,8 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
 {
   #Loci: genotype matrix, line=SNP order in increasing bp, column individual genoype
   #bp: position of the SNP in term of base pair
-  #counfounder: designed matrix of the counfounding effect size = n,c
-  #n= n ind, c= number of counfounder
+  #confounder: designed matrix of the confounding effect size = n,c
+  #n= n ind, c= number of confounder
   #lev_res: lev of resolution for the wavelet filtering
   #sigma_b= Para of prior, should be <1 advised 0.2
 	
@@ -191,7 +191,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
       res = A2 + log(exp(A1 - A2) + 1)
     }
 
-    return (res)
+    return(res)
   }
 
   max_EM_Lambda <- function(my_bayes)
@@ -221,7 +221,6 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
 
       
       for(iter in  0:niter){
-
         pi = pp/(2^(gi))
         logpi  = log(pi)
         log1pi = log(1-pi)
@@ -248,25 +247,18 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   }
 
 
-
   #Paralelisation
   if(para==TRUE)
   {
     cl <-makeCluster(detectCores(all.tests=TRUE)-1, type = "SOCK")
   }
 
-
   ###################
   #Wavelet processing
   ###################
   print("Wavelet processing")
 
-  genotype_df <-  loci
-  lev_res <- lev_res
-  my_bp <- my_bp #bp has to be in position 2
   Time01 <- (my_bp- min(my_bp))/(max(my_bp)-min(my_bp))
-  mygrid <- wavethresh::makegrid(t=Time01,y=my_bp)
-  TimeGrid <- mygrid$gridt*(max(my_bp)-min(my_bp))+min(my_bp)
   my_wavproc <- function(y)
   {
     #Kovac and Silvermann 2000
@@ -274,7 +266,8 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
     LDIRWD <- irregwd(mygrid,filter.number=1)
     class(LDIRWD) <- "wd"
     #Thresholding here
-    LDIRWD<- threshold(LDIRWD,policy = "universal",type="hard",dev = madmad,levels = 1:(LDIRWD$nlevels-1))
+    LDIRWD <- threshold(LDIRWD,policy = "universal",type="hard",
+    				   dev = madmad,levels = 1:(LDIRWD$nlevels-1))
 
     res <- c()
     for(i in 0: lev_res){
@@ -287,7 +280,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
     	}
     }
 
-    res
+    return(res)
   }
 
   if(para==TRUE)
@@ -299,10 +292,10 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
     clusterExport(cl,"accessD")
     clusterExport(cl,"accessC")
     clusterExport(cl,"my_wavproc")
-    Gen_W_trans <- snow::parApply(cl,genotype_df,2,my_wavproc)
+    Gen_W_trans <- snow::parApply(cl,loci,2,my_wavproc)
   }
   else{
-    Gen_W_trans <- apply(genotype_df,2,my_wavproc)
+    Gen_W_trans <- apply(loci,2,my_wavproc)
   }
 
   #Quantile transform for non normal WCs for every scale location
@@ -311,18 +304,17 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   ##########
   #Modeling
   ##########
-  my_Y <- Y
-  W <- as.matrix(counfounder, ncol=ncol(counfounder))
-  L <- as.matrix(my_Y , ncol=ncol(my_Y)) #reversed regression
   print("Computing Bayes Factors")
-
+  W <- as.matrix(confounder, ncol=ncol(confounder))  
   n = nrow(W)
   q = ncol(W)
-  L <- as.matrix(my_Y,ncol=1)
+  
+  # L <- as.matrix(Y , ncol=ncol(Y)) #reversed regression
+  L <- as.matrix(Y,ncol=1)
 
   p = 1
   PW = diag(n) - W %*% solve(t(W) %*% W) %*% t(W)
-  X= PW %*% L
+  X = PW %*% L
   HB = X %*% solve(t(X) %*% X + diag(1/sigma_b/sigma_b,p)) %*% t(X)
   delta = svd(X)$d
   lambda = delta^2 / (delta^2 + 1/sigma_b/sigma_b)
@@ -341,8 +333,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
 
   if(para==TRUE)
   {
-    clusterExport(cl,"W")
-    clusterExport(cl,"my_Y")
+    clusterExport(cl,"log.T")
     clusterExport(cl,"sigma_b")
     clusterExport(cl,"my_bf")
     my_bayes <- snow::parApply(cl,Gen_W_trans, 2, my_bf )
@@ -352,18 +343,14 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   }
 
 
-  print("Post-processing")
-  my_out_bayes <- my_bayes
-  my_pis <- max_EM_Lambda(my_bayes = my_bayes)
-
-
   #################
   #Estimation Lambda
   #################
+  print("Post-processing")
+  my_pis <- max_EM_Lambda(my_bayes = my_bayes)
   trueLambda <- Lambda_stat(my_pi = my_pis,my_bayes = my_bayes)
-  my_pis <- my_pis
 
-  out <- c(trueLambda,my_pis,my_out_bayes)
+  out <- c(trueLambda,my_pis,my_bayes)
 
   #Naming the output
   names_BF <- c("BF_0_0")
