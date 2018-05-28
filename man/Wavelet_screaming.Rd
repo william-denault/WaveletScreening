@@ -4,16 +4,17 @@
 \alias{Wavelet_screaming}
 \title{Main function to perform wavelet screaming}
 \usage{
-Wavelet_screaming(Y, loci, bp, counfounder, lev_res, sigma_b, coeftype, para)
+Wavelet_screaming(Y, loci, bp, confounder, lev_res, sigma_b, coeftype = "d",
+  para = FALSE)
 }
 \arguments{
-\item{Y}{phenotype vector, has to be numeric. For case control code it as 0 and 1. Mulitple label phenotype will be implemented in the next version}
+\item{Y}{phenotype vector, has to be numeric. For case control code it as 0 and 1. Multiple label phenotype will be implemented in the next version}
 
 \item{loci}{genotype matrix, line=SNP in increasing order in term of  base pair, columun individual genoype. No missing value allowed.}
 
 \item{bp}{vector of the base pairs positions. It has to be in the same order and length than the loci line order/length.}
 
-\item{counfounder}{the counfounding matrix with a number of line equal to the length of Y. The intercept should not be included, if missing will generate a intercept matrix.}
+\item{confounder}{the confounding matrix with the same sample order as Y. The intercept should not be included, if missing will generate a intercept matrix.}
 
 \item{lev_res}{the maximum level of resolution needed}
 
@@ -21,10 +22,10 @@ Wavelet_screaming(Y, loci, bp, counfounder, lev_res, sigma_b, coeftype, para)
 
 \item{coeftype}{type of wavelet coefficient used for the screening. By default set as "d" difference, "c" can be used if you prefere to work in term of amount of variants instead in disrepency within sub loci.}
 
-\item{para}{logical parameter for parallelisation, if not specified set at TRUE.}
+\item{para}{logical parameter for parallelisation, if not specified set at FALSE.}
 }
 \value{
-Wavelet_screaming return a vector. First position the estimated value of the Lambda statistics, then the proportion of association per level of resolution then the computed Bayes Factor per wavelet coefficient.
+A named vector. First position the estimated value of the Lambda statistics, then the proportion of association per level of resolution then the computed Bayes Factor per wavelet coefficient.
 }
 \description{
 Perform a wavelet screening of a loci for a given phenotype and a specified level of resolution

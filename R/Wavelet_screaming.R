@@ -110,8 +110,14 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   #n= n ind, c= number of confounder
   #lev_res: lev of resolution for the wavelet filtering
   #sigma_b= Para of prior, should be <1 advised 0.2
-	
-	
+
+
+  #To ensure the length not to be 0
+  Y <- as.vector(Y)
+  sigma_b <- sigma_b
+
+
+
   # INPUT CHECKS
   print("Input dimensions:")
   if(!is.numeric(Y) | length(Y)==0){
@@ -126,8 +132,10 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   		print("Continuous phenotype detected")
   	}
   }
-	
+
+  ##########################
   #Writing the design matrix
+  ##########################
   if(missing(confounder)) {
   	print("no covariates provided, using intercept only")
   	confounder <- data.frame(confounding=rep(1,length(Y)) )
@@ -138,7 +146,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
 	confounder <- rbind(rep(1,length(Y)),confounder)
   }
 
-<<<<<<< HEAD
+
   print("Input dimensions:")
   print(sprintf("Y: %i vector", length(Y)))
   print(sprintf("loci: %i x %i", nrow(loci), ncol(loci)))
@@ -149,22 +157,23 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   if(missing(coeftype))
   {
     coeftype <-"d"
-=======
+  }
   # Check genotype matrix
-  if(missing(loci) | !is.numeric(loci)){
+  if(missing(loci) ){#| !is.numeric(loci)){
   	stop("ERROR: genotype matrix missing or not numeric")
-  } else if(nrow(loci)!=length(Y)){
+  } else if(ncol(loci)!=length(Y)){
   	stop("ERROR: number of samples in Y and loci does not match")
   } else {
-  	print(sprintf("%i SNPs for %i samples detected", ncol(loci), nrow(loci)))	
+  	print(sprintf("%i SNPs for %i samples detected", nrow(loci), ncol(loci)))
   }
-  
-  # Check position vector 
+
+  # Check position vector
   if(!is.numeric(bp) | !is.vector(bp)){
   	stop("ERROR: must provide numeric position vector")
   } else {
-  	print(sprintf("positions for %i SNPs read", length(bp)))	
->>>>>>> ea36be9291369f8bf2b7f538470c59bcf80daba6
+  	print(sprintf("positions for %i SNPs read", length(bp)))
+
+
   }
 
   ####################################
@@ -232,7 +241,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
       N_obllikli = sum(logden)
       O_obllikli = N_obllikli
 
-      
+
       for(iter in  0:niter){
         pi = pp/(2^(gi))
         logpi  = log(pi)
@@ -257,30 +266,15 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
       p_vec <-c(p_vec,pi)
     }
     return(p_vec)
-<<<<<<< HEAD
+
+
 
   }
 
-  #To ensure the length not to be 0
-  Y <- as.vector(Y)
-  ##########################
-  #Writing the design matrix
-  ##########################
-  sigma_b <- sigma_b
-  if(missing(counfounder))
-  {
-    counfounder <- data.frame(counfounding =rep(1,length(Y)) )
-  } else
-  {
-    if(nrow(counfounder) != length(Y)) stop("Error: argument lengths not compatible")
-    counfounder <- rbind(rep(1,length(Y)),counfounder)
-=======
->>>>>>> ea36be9291369f8bf2b7f538470c59bcf80daba6
-  }
-  print(sprintf("counfounder: %i x %i", nrow(counfounder), ncol(counfounder)))
 
-
+  ###############
   #Paralelisation
+  ###############
   if(para==TRUE)
   {
     cl <-makeCluster(detectCores(all.tests=TRUE)-1, type = "SOCK")
@@ -309,7 +303,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
     	} else if (coeftype == "c") {
 		        res <- c(res, accessC( LDIRWD,lev = i) )
     	} else {
-    		stop(paste("ERROR: coeftype", coeftype, "not recognized")
+    		stop(paste("ERROR: coeftype", coeftype, "not recognized") )
     	}
     }
 
@@ -338,10 +332,10 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   #Modeling
   ##########
   print("Computing Bayes Factors")
-  W <- as.matrix(confounder, ncol=ncol(confounder))  
+  W <- as.matrix(confounder, ncol=ncol(confounder))
   n = nrow(W)
   q = ncol(W)
-  
+
   # L <- as.matrix(Y , ncol=ncol(Y)) #reversed regression
   L <- as.matrix(Y,ncol=1)
 
