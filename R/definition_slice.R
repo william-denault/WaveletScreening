@@ -1,12 +1,12 @@
-#'@title defined the chromosal regions for screening
+#'@title Define chromosomal regions for screening
 #'@description  Define overlapping loci starting and ending positions for Wavelet screaming analysis
-#'@param bp vector of the observed based pair in a Chromosome
-#'@param Loci_size size of the defined loci
+#'@param bp vector of the observed based pair positions in a chromosome
+#'@param Loci_size size of the defined loci, limited by thresh size gaps on ends. Slices smaller than Loci_size will be skipped.
 #'@param thresh maximal distance between two SNP within a loci. E.g 10000
-#'@param Chr the chromosome's number  where the slicing is made. By default set as NA
+#'@param Chr the chromosome's number where the slicing is made. By default set as NA
 #'@export
 #'@examples \dontrun{
-#'Loci_size =1000000
+#'Loci_size=1000000
 #'thresh=10000
 #'temp <- runif(n = 50000,min=1,max=10050)
 #'for (i in 2:length(temp))
@@ -18,22 +18,16 @@
 #'head(df)
 #'}
 
-slice_definition <- function(bp,Loci_size,thresh,Chr)
+slice_definition <- function(bp,Loci_size=1e6,thresh=1e4,Chr=NA)
 {
-  if(missing(Chr))
-  {
-    Chr <-NA
+  if(!is.vector(bp) | !is.numeric(bp)){
+  	stop("ERROR: bp was not a numeric vector")
   }
-
+  bp <- sort(bp)
+  
   #First SNp at distance 0 of itself
-  espacement <- c(0,rep(NA,length(bp)[1]-1))
-
-
-  for(i in 1:(length(espacement)-1 ) )
-  {
-    espacement[i+1] <-bp[i+1] -bp[i]
-  }
-
+  espacement <- c(0,diff(bp))
+  
   ##################################
   ##location where spacing is to big
   ##################################
@@ -43,24 +37,9 @@ slice_definition <- function(bp,Loci_size,thresh,Chr)
   {
     my_index <- c(1, length(bp))
   }
+  
   #Check distance between problematic spacing
-
-  possible_loci <- rep(FALSE,length(bp[my_index]) )
-  Width_loci <- rep(FALSE,length(bp[my_index]) )
-
-  for( i in 1: (length(possible_loci)-1) )
-  {
-    my_diff <- bp[my_index][i+1]-bp[my_index][i]
-    if( (  Loci_size <= my_diff) )
-    {
-      possible_loci[i] <- TRUE #Truemean ok to run a wavelet analysis between my_index[i] and my_index[i+1]
-      Width_loci[i] <- my_diff
-    }
-  }
-
-
-  #percentage of included genotyped data
-  coverage_of_analysis <- 100*sum(Width_loci)/(max(bp)-min(bp))
+  Width_loci <- rep(0,length(my_index))
 
 
   #######################################
@@ -73,55 +52,49 @@ slice_definition <- function(bp,Loci_size,thresh,Chr)
   #if lower than 1.5 than loci_size then run one analysis from the start one from the end
 
   #df output to define the extraction
-  df <- data.frame(Chr= numeric(),poStart= numeric(),posEnd= numeric())
+  df <- data.frame(Chr= numeric(),posStart= numeric(),posEnd= numeric())
 
-  for(i in 1:(length(possible_loci)-1))
+  for(i in 1:(length(my_index)-1))
   {
+  	my_diff <- bp[my_index][i+1]-bp[my_index][i]
+ 
+  	if( my_diff >= Loci_size ) #True means ok to run a wavelet analysis between my_index[i] and my_index[i+1]
+  	{
+  	  Width_loci[i] <- my_diff
 
-    if(possible_loci[i] ==TRUE)
-    {
-      if(Width_loci[i] >= 1.5*Loci_size)
+      if(my_diff >= 1.5*Loci_size)
       {
-
-
         temp1 <-0
-        while(temp1  + Loci_size < Width_loci[i])
+        while(temp1  + Loci_size < my_diff)
         {
-
-          #definition of one slide with a "dense" enoguh region (-1 +1 just to insure that we keep the SNPs)
-          my_loci <- c(Chr,bp[my_index][i] +temp1-1 ,bp[my_index][i]+ temp1 +Loci_size +1 )
+          #definition of one slice with a "dense" enough region (-1 +1 just to insure that we keep the SNPs)
+          my_loci <- c(Chr, bp[my_index][i]+temp1-1, bp[my_index][i]+temp1+Loci_size+1)
           df <- rbind(df,my_loci)
 
           temp1 <- temp1 +Loci_size/2
-
         }
 
-        #to get the last part whihc is the rest of width_loci[i]/1.5*loci_size
-        my_loci <- c(Chr,bp[my_index][i+1] -Loci_size-1 ,bp[my_index][i+1]+1 )
+        #to get the last part which is the rest of width_loci[i]/1.5*loci_size
+        my_loci <- c(Chr, bp[my_index][i+1]-Loci_size-1, bp[my_index][i+1]+1 )
         df <- rbind(df,my_loci)
-
       }
       else
       {
-        my_loci <- c(Chr,bp[my_index][i]-1 ,bp[my_index][i] + Loci_size + 1 )
+        my_loci <- c(Chr,bp[my_index][i]-1, bp[my_index][i] + Loci_size + 1 )
         df <- rbind(df,my_loci)
-        my_loci <- c(Chr,bp[my_index][i+1] - Loci_size-1 ,bp[my_index][i+1] + 1 )
+        my_loci <- c(Chr,bp[my_index][i+1] - Loci_size-1, bp[my_index][i+1] + 1 )
         df <- rbind(df,my_loci)
-
       }
-
-
-
-
-
-
     }
-
-
   }
 
-  colnames(df) <- c("Chr","poStart","posEnd")
-  print(paste("percentage of included of the SNPs included after slice definition: ",
+  # percentage of chromosome covered
+  # note: does not necessarily correspond to coverage of genotyped positions
+  coverage_of_analysis <- 100*sum(Width_loci)/(max(bp)-min(bp))
+  
+  colnames(df) <- c("Chr","posStart","posEnd")
+  print(paste("number of slices defined: ", nrow(df)))
+  print(paste("percentage of chromosome covered after slice definition: ",
               coverage_of_analysis,"%"))
   return(df)
 }
