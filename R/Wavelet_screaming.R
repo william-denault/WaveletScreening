@@ -121,7 +121,8 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   # INPUT CHECKS
   print("Input dimensions:")
   if(!is.numeric(Y) | length(Y)==0){
-  	stop("ERROR: Y is not a numeric vector")
+  stop("ERROR: Y is not a numeric vector")
+
   } else {
   	print(sprintf("%i phenotypes detected", length(Y)))
   	if(all(Y %in% c(0,1))){
@@ -159,8 +160,9 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
     coeftype <-"d"
   }
   # Check genotype matrix
-  if(missing(loci) ){#| !is.numeric(loci)){
-  	stop("ERROR: genotype matrix missing or not numeric")
+  if(missing(loci)| (length(which(is.na(loci))) >=1) ){#| !is.numeric(loci)){
+  	print("ERROR: genotype matrix missing or contain missing values")
+    return(NA)
   } else if(ncol(loci)!=length(Y)){
   	stop("ERROR: number of samples in Y and loci does not match")
   } else {
