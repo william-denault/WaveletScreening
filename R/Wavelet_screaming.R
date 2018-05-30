@@ -353,8 +353,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   my_bf <- function( y ){
     y <-  as.matrix(y,ncol=1)
     log.R = -0.5*n*log(1 - (t(y) %*% HB %*% y) / (t(y) %*% PW %*% y ))
-    # one can check:
-    # log.T = -0.5*log(det( t(X) %*% X * sigma_b * sigma_b + diag(p)))
+
     bf = exp(log.T + log.R)
     return(c(bf))
   }
