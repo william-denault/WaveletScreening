@@ -127,7 +127,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   	}
   }
 	
-  #Writing the design matrix
+  # Writing the design matrix
   if(missing(confounder)) {
   	print("no covariates provided, using intercept only")
   	confounder <- data.frame(confounding=rep(1,length(Y)) )
@@ -135,16 +135,16 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   	stop("ERROR: number of samples in Y and confounder does not match")
   } else {
   	print(sprintf("%i covariates for %i samples detected", ncol(confounder), nrow(confounder)))
-	confounder <- rbind(rep(1,length(Y)),confounder)
+	confounder <- cbind(rep(1,length(Y)),confounder)
   }
 
   # Check genotype matrix
   if(missing(loci) | !is.numeric(loci)){
   	stop("ERROR: genotype matrix missing or not numeric")
-  } else if(nrow(loci)!=length(Y)){
+  } else if(ncol(loci)!=length(Y)){
   	stop("ERROR: number of samples in Y and loci does not match")
   } else {
-  	print(sprintf("%i SNPs for %i samples detected", ncol(loci), nrow(loci)))	
+  	print(sprintf("%i SNPs for %i samples detected", nrow(loci), ncol(loci)))	
   }
   
   # Check position vector 
@@ -159,19 +159,20 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   keepC <- complete.cases(confounder)
   keepGT <- complete.cases(t(loci))
   nonmissing_index <- which(keepGT & keepY & keepC)
-  print(sprintf("Warning: %i individuals will be removed due to missingness",
-    		length(nonmissing_index)))
-
+  if(length(nonmissing_index) != length(Y)){
+  	print(sprintf("Warning: %i individuals will be removed due to missingness",
+  			nrow(Y) - length(nonmissing_index)))
+  }
+  
   Y <- Y[nonmissing_index]
   confounder <- confounder[nonmissing_index,]
   loci <- loci[,nonmissing_index]
-  bp <- bp[nonmissing_index]
-	
-  print(paste("N individuals analysed = ", dim(geno_mat)[2],
-  			", N SNPs analysed = ",dim(geno_mat)[1]))
+
+  print(paste("N individuals analysed = ", dim(loci)[2],
+  			", N SNPs analysed = ",dim(loci)[1]))
 
   # workaround for git issue #1 - mysteriously empty slices
-  if(dim(loci)[1] < 2^lev_res | dim(loci)[2] < 2^lev_res){
+  if(dim(loci)[1] < 2^lev_res | dim(loci)[2] < 2){
   	print("Warning: not enough genotypes remaining, returning empty output")
     
     # Naming the output
@@ -290,7 +291,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   ###################
   print("Wavelet processing")
 
-  Time01 <- (my_bp- min(my_bp))/(max(my_bp)-min(my_bp))
+  Time01 <- (bp- min(bp))/(max(bp)-min(bp))
   my_wavproc <- function(y)
   {
     #Kovac and Silvermann 2000
@@ -308,7 +309,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
     	} else if (coeftype == "c") {
 		        res <- c(res, accessC( LDIRWD,lev = i) )
     	} else {
-    		stop(paste("ERROR: coeftype", coeftype, "not recognized")
+    		stop(paste("ERROR: coeftype", coeftype, "not recognized"))
     	}
     }
 

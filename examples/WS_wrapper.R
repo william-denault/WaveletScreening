@@ -79,7 +79,7 @@ for(i in start:end){
   my_slice  <- fread(paste0("gzip -dc ", slicestem,
   					  slices[i,1], "_", slices[i,2], "-", slices[i,3], ".vcf.gz"))
   bp <- unlist(my_slice[,2], use.names=F)
-  my_slice <- t(my_slice[,3:(ncol(my_slice)-1)])
+  my_slice <- as.matrix(my_slice[,3:(ncol(my_slice)-1)])
 
   print("locus imported successfully")
   print(proc.time()-ptm)
@@ -133,14 +133,14 @@ for(i in start:end){
 }
 
 write.table(res_coefc,
-			paste0(workdir, "other/wt/results/res_coefc_", start, "-", end, ".txt"),
+			paste0(workdir, "results/res_coefc_", start, "-", end, ".txt"),
 			row.names=F, col.names=T, quote=F)
 write.table(res_coefd,
-			paste0(workdir, "other/wt/results/res_coefd_", start, "-", end, ".txt"),
+			paste0(workdir, "results/res_coefd_", start, "-", end, ".txt"),
 			row.names=F, col.names=T, quote=F)
 write.table(res_coefc_aa46,
-			paste0(workdir, "other/wt/results/res_coefc_aa46_", start, "-", end, ".txt"),
+			paste0(workdir, "results/res_coefc_aa46_", start, "-", end, ".txt"),
 			row.names=F, col.names=T, quote=F)
 write.table(res_coefd_aa46,
-			paste0(workdir, "other/wt/results/res_coefd_aa46_", start, "-", end, ".txt"),
+			paste0(workdir, "results/res_coefd_aa46_", start, "-", end, ".txt"),
 			row.names=F, col.names=T, quote=F)
