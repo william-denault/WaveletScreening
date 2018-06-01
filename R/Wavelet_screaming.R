@@ -154,6 +154,38 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   	print(sprintf("positions for %i SNPs read", length(bp)))	
   }
 
+  # Clean missing samples from all inputs	
+  keepY <- complete.cases(Y)
+  keepC <- complete.cases(confounder)
+  keepGT <- complete.cases(t(loci))
+  nonmissing_index <- which(keepGT & keepY & keepC)
+  print(sprintf("Warning: %i individuals will be removed due to missingness",
+    		length(nonmissing_index)))
+
+  Y <- Y[nonmissing_index]
+  confounder <- confounder[nonmissing_index,]
+  loci <- loci[,nonmissing_index]
+  bp <- bp[nonmissing_index]
+	
+  print(paste("N individuals analysed = ", dim(geno_mat)[2],
+  			", N SNPs analysed = ",dim(geno_mat)[1]))
+
+  # workaround for git issue #1 - mysteriously empty slices
+  if(dim(loci)[1] < 2^lev_res | dim(loci)[2] < 2^lev_res){
+  	print("Warning: not enough genotypes remaining, returning empty output")
+    
+    # Naming the output
+    names_BF <- c("BF_0_0")
+    for(i in 1:lev_res){
+  	  for (j in 1:(2^i)){
+  		names_BF <- c(names_BF,paste("BF",i,j,sep = "_"))
+  	  }
+    }
+    out = rep(NA, 1+lev_res+1+length(names_BF))
+    names(out) <- c("Lambda", paste("pi",0:lev_res, sep = "_"), names_BF)
+    return(out)
+  }
+
   ####################################
   #Redefinition of the needed function
   ####################################
@@ -285,7 +317,6 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
 
   if(para==TRUE)
   {
-    lev_res=lev_res
     clusterExport(cl,"irregwd")
     clusterExport(cl,"threshold")
     clusterExport(cl,"madmad")
