@@ -2,25 +2,25 @@
 % Please edit documentation in R/definition_slice.R
 \name{slice_definition}
 \alias{slice_definition}
-\title{defined the chromosal regions for screening}
+\title{Define chromosomal regions for screening}
 \usage{
-slice_definition(bp, Loci_size, thresh, Chr)
+slice_definition(bp, Loci_size = 1e+06, thresh = 10000, Chr = NA)
 }
 \arguments{
-\item{bp}{vector of the observed based pair in a Chromosome}
+\item{bp}{vector of the observed based pair positions in a chromosome}
 
-\item{Loci_size}{size of the defined loci}
+\item{Loci_size}{size of the defined loci, limited by thresh size gaps on ends. Slices smaller than Loci_size will be skipped.}
 
 \item{thresh}{maximal distance between two SNP within a loci. E.g 10000}
 
-\item{Chr}{the chromosome's number  where the slicing is made. By default set as NA}
+\item{Chr}{the chromosome's number where the slicing is made. By default set as NA}
 }
 \description{
 Define overlapping loci starting and ending positions for Wavelet screaming analysis
 }
 \examples{
 \dontrun{
-Loci_size =1000000
+Loci_size=1000000
 thresh=10000
 temp <- runif(n = 50000,min=1,max=10050)
 for (i in 2:length(temp))

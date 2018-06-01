@@ -110,12 +110,19 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   #n= n ind, c= number of confounder
   #lev_res: lev of resolution for the wavelet filtering
   #sigma_b= Para of prior, should be <1 advised 0.2
-	
-	
+
+
+  #To ensure the length not to be 0
+  Y <- as.vector(Y)
+  sigma_b <- sigma_b
+
+
+
   # INPUT CHECKS
   print("Input dimensions:")
   if(!is.numeric(Y) | length(Y)==0){
-  	stop("ERROR: Y is not a numeric vector")
+  stop("ERROR: Y is not a numeric vector")
+
   } else {
   	print(sprintf("%i phenotypes detected", length(Y)))
   	if(all(Y %in% c(0,1))){
@@ -126,7 +133,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   		print("Continuous phenotype detected")
   	}
   }
-	
+
   # Writing the design matrix
   if(missing(confounder)) {
   	print("no covariates provided, using intercept only")
@@ -138,6 +145,18 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
 	confounder <- cbind(rep(1,length(Y)),confounder)
   }
 
+
+  print("Input dimensions:")
+  print(sprintf("Y: %i vector", length(Y)))
+  print(sprintf("loci: %i x %i", nrow(loci), ncol(loci)))
+  print(sprintf("bp: %i vector", length(bp)))
+
+
+
+  if(missing(coeftype))
+  {
+    coeftype <-"d"
+  }
   # Check genotype matrix
   if(missing(loci) | !is.numeric(loci)){
   	stop("ERROR: genotype matrix missing or not numeric")
@@ -146,12 +165,14 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   } else {
   	print(sprintf("%i SNPs for %i samples detected", nrow(loci), ncol(loci)))	
   }
-  
-  # Check position vector 
+
+  # Check position vector
   if(!is.numeric(bp) | !is.vector(bp)){
   	stop("ERROR: must provide numeric position vector")
   } else {
-  	print(sprintf("positions for %i SNPs read", length(bp)))	
+  	print(sprintf("positions for %i SNPs read", length(bp)))
+
+
   }
 
   # Clean missing samples from all inputs	
@@ -252,7 +273,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
       N_obllikli = sum(logden)
       O_obllikli = N_obllikli
 
-      
+
       for(iter in  0:niter){
         pi = pp/(2^(gi))
         logpi  = log(pi)
@@ -277,10 +298,15 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
       p_vec <-c(p_vec,pi)
     }
     return(p_vec)
+
+
+
   }
 
 
+  ###############
   #Paralelisation
+  ###############
   if(para==TRUE)
   {
     cl <-makeCluster(detectCores(all.tests=TRUE)-1, type = "SOCK")
@@ -337,10 +363,10 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   #Modeling
   ##########
   print("Computing Bayes Factors")
-  W <- as.matrix(confounder, ncol=ncol(confounder))  
+  W <- as.matrix(confounder, ncol=ncol(confounder))
   n = nrow(W)
   q = ncol(W)
-  
+
   # L <- as.matrix(Y , ncol=ncol(Y)) #reversed regression
   L <- as.matrix(Y,ncol=1)
 
@@ -356,8 +382,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   my_bf <- function( y ){
     y <-  as.matrix(y,ncol=1)
     log.R = -0.5*n*log(1 - (t(y) %*% HB %*% y) / (t(y) %*% PW %*% y ))
-    # one can check:
-    # log.T = -0.5*log(det( t(X) %*% X * sigma_b * sigma_b + diag(p)))
+
     bf = exp(log.T + log.R)
     return(c(bf))
   }

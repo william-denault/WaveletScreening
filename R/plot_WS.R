@@ -22,7 +22,10 @@ plot_WS <- function(res,bp,lev_res,fill,dg)
   {
     dg=3
   }
-
+  if(missing(bp))
+  {
+    bp=c(0,1)
+  }
 
   res <- res[-c(1:(lev_res+2))]
 
