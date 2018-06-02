@@ -20,14 +20,15 @@ options(stringsAsFactors = F)
 
 library(EbayesThresh)
 library(readr)
-#library(adlift)
-#library(liftLRD)
 library(wavelets)
 library(wavethresh)
 library(data.table)
 library(corpcor)
 library(rARPACK)
 library(WaveletScreaming)
+library(RhpcBLASctl)
+
+blas_set_num_threads(1)
 
 args = commandArgs(T)
 batch = as.numeric(args[1])
