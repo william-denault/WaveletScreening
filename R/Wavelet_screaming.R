@@ -120,7 +120,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
 
   # INPUT CHECKS
   print("Input dimensions:")
-  if(!is.numeric(Y) | length(Y)==0){
+  if(!is.numeric(Y) || length(Y)==0){
   stop("ERROR: Y is not a numeric vector")
 
   } else {
@@ -158,7 +158,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
     coeftype <-"d"
   }
   # Check genotype matrix
-  if(missing(loci) | !is.numeric(loci)){
+  if(missing(loci) || !is.numeric(loci)){
   	stop("ERROR: genotype matrix missing or not numeric")
   } else if(ncol(loci)!=length(Y)){
   	stop("ERROR: number of samples in Y and loci does not match")
@@ -167,12 +167,10 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   }
 
   # Check position vector
-  if(!is.numeric(bp) | !is.vector(bp)){
+  if(!is.numeric(bp) || !is.vector(bp)){
   	stop("ERROR: must provide numeric position vector")
   } else {
   	print(sprintf("positions for %i SNPs read", length(bp)))
-
-
   }
 
   # Clean missing samples from all inputs	
@@ -182,7 +180,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   nonmissing_index <- which(keepGT & keepY & keepC)
   if(length(nonmissing_index) != length(Y)){
   	print(sprintf("Warning: %i individuals will be removed due to missingness",
-  			nrow(Y) - length(nonmissing_index)))
+  			length(Y) - length(nonmissing_index)))
   }
   
   Y <- Y[nonmissing_index]
@@ -193,7 +191,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   			", N SNPs analysed = ",dim(loci)[1]))
 
   # workaround for git issue #1 - mysteriously empty slices
-  if(dim(loci)[1] < 2^lev_res | dim(loci)[2] < 2){
+  if(is.null(dim(loci)) || dim(loci)[1] < 2^lev_res || dim(loci)[2] < 2){
   	print("Warning: not enough genotypes remaining, returning empty output")
     
     # Naming the output
