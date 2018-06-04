@@ -44,8 +44,8 @@
 #'type_fn <-sample(0:2,replace = TRUE,size=n_size,  prob=  sampl_schem  )
 #'
 #'
-#'genotype_df <-  data.frame(matrix(my_functions[my_bp,2 ], ncol=1 ) %*%t(matrix(type_fn,ncol=1)))
-#'#dim(genotype_df)= nSNP, nind
+#'genotype <-  matrix(my_functions[my_bp,2 ], ncol=1 ) %*%t(matrix(type_fn,ncol=1))
+#'#dim(genotype)= nSNP, nind
 #'
 #'###############################################################
 #'#Generate a phenotype with variance explained by genotype  0.5%
@@ -62,7 +62,7 @@
 #'##################
 #'#Wavelet screaming
 #'##################
-#'res <- Wavelet_screaming( Y,loci=genotype_df,bp=my_bp,
+#'res <- Wavelet_screaming( Y,loci=genotype,bp=my_bp,
 #'                          lev_res=6,sigma_b = 0.2)
 #'
 #'#############
