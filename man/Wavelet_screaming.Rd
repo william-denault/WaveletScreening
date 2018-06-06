@@ -10,7 +10,7 @@ Wavelet_screaming(Y, loci, bp, confounder, lev_res, sigma_b, coeftype = "d",
 \arguments{
 \item{Y}{phenotype vector, has to be numeric. For case control code it as 0 and 1. Multiple label phenotype will be implemented in the next version}
 
-\item{loci}{genotype matrix, line=SNP in increasing order in term of  base pair, columun individual genoype. No missing value allowed.}
+\item{loci}{genotype matrix (either data.frame or numeric matrix). Lines=SNPs in increasing order in term of base pair, columns=individuals. No missing values allowed.}
 
 \item{bp}{vector of the base pairs positions. It has to be in the same order and length than the loci line order/length.}
 
@@ -68,8 +68,8 @@ n_size=4000
 type_fn <-sample(0:2,replace = TRUE,size=n_size,  prob=  sampl_schem  )
 
 
-genotype_df <-  data.frame(matrix(my_functions[my_bp,2 ], ncol=1 ) \%*\%t(matrix(type_fn,ncol=1)))
-#dim(genotype_df)= nSNP, nind
+genotype <-  matrix(my_functions[my_bp,2 ], ncol=1 ) \%*\%t(matrix(type_fn,ncol=1))
+#dim(genotype)= nSNP, nind
 
 ###############################################################
 #Generate a phenotype with variance explained by genotype  0.5\%
@@ -86,9 +86,12 @@ ggplot(df,aes(x=type_geno,y=Y))+
 ##################
 #Wavelet screaming
 ##################
+res <- Wavelet_screaming( Y,loci=genotype,bp=my_bp,
+                         lev_res=6,sigma_b = 0.2)
+# or:
+genotype_df <- as.data.frame(genotype)
 res <- Wavelet_screaming( Y,loci=genotype_df,bp=my_bp,
                          lev_res=6,sigma_b = 0.2)
-
 #############
 #Significance
 #############
