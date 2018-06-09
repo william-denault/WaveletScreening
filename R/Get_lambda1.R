@@ -1,7 +1,7 @@
 #'@title Compute lambda1 for BF null distribution
 #'@description Compute the lambda parameter of the Bayes factors null distribution.
 #'@param Y a vector of the variable of interest.
-#'@param counfounder the counfounding matrix with same a number of line equal to the length of Y. The intercept should not be included, if missing will generate a intercept matrix.
+#'@param confounder the confounding matrix with same a number of line equal to the length of Y. The intercept should not be included, if missing will generate a intercept matrix.
 #'@param sigma_b value of the prior used in the Wavelet screaming.
 #'@export
 #'@references Quan Zhou and Yongtao Guan, On the Null Distribution of Bayes Factors in linear Regression, Journal of the American Statistical Association, 518, 2017.
@@ -14,23 +14,47 @@
 #'}
 
 
-
-
-
-
-
-get_lambda1 <- function(Y,counfounder,sigma_b)
-
+get_lambda1 <- function(Y, confounder, sigma_b)
 {
+  Y <- as.vector(Y)
 
-  if(missing(counfounder))
-  {
-    counfounder <- data.frame(counfounding =rep(1,length(Y)) )
-  } else
-  {
-    counfounder <- rbind(rep(1,length(Y)),counfounder)
+  # INPUT CHECKS
+  print("Input dimensions:")
+  if(!is.numeric(Y) || length(Y)==0){
+    stop("ERROR: Y is not a numeric vector")
+  } else {
+    print(sprintf("%i phenotypes detected", length(Y)))
+    if(all(Y %in% c(0,1))){
+      print("Binary phenotype detected")
+    } else if(!is.vector(Y)){
+      stop("ERROR: Y is not a vector. Multi-phenotype analysis not implemented yet.")
+    } else {
+      print("Continuous phenotype detected")
+    }
   }
-  W <- as.matrix(counfounder, ncol=ncol(counfounder))
+  if(missing(confounder)) {
+    print("no covariates provided, using intercept only")
+    confounder <- data.frame(confounding=rep(1,length(Y)) )
+  } else if(nrow(confounder)!=length(Y)) {
+    stop("ERROR: number of samples in Y and confounder does not match")
+  } else {
+    print(sprintf("%i covariates for %i samples detected", ncol(confounder), nrow(confounder)))
+    confounder <- cbind(rep(1,length(Y)),confounder)
+  }
+
+  # Clean missing samples from all inputs
+  keepY <- complete.cases(Y)
+  keepC <- complete.cases(confounder)
+  nonmissing_index <- which(keepY & keepC)
+  if(length(nonmissing_index) != length(Y)){
+    print(sprintf("Warning: %i individuals will be removed due to missingness",
+                  length(Y) - length(nonmissing_index)))
+  }
+
+  Y <- Y[nonmissing_index]
+  confounder <- confounder[nonmissing_index,]
+
+  W <- as.matrix(confounder, ncol=ncol(confounder))
   L <- as.matrix(Y , ncol=ncol(Y)) #reversed regression
   n = nrow(W)
   q = ncol(W)
@@ -40,8 +64,7 @@ get_lambda1 <- function(Y,counfounder,sigma_b)
   X= PW %*% L
   HB = X %*% solve(t(X) %*% X + diag(1/sigma_b/sigma_b,p)) %*% t(X)
 
-  temp <- svd(HB)
-  lambda <- temp$d[1]
+  lambda <- svd(HB, nu=0, nv=0)$d[1]
 
   return(lambda)
 }

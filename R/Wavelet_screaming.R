@@ -143,14 +143,8 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   	stop("ERROR: number of samples in Y and confounder does not match")
   } else {
   	print(sprintf("%i covariates for %i samples detected", ncol(confounder), nrow(confounder)))
-	confounder <- cbind(rep(1,length(Y)),confounder)
+	  confounder <- cbind(rep(1,length(Y)),confounder)
   }
-
-
-  print("Input dimensions:")
-  print(sprintf("Y: %i vector", length(Y)))
-  print(sprintf("loci: %i x %i", nrow(loci), ncol(loci)))
-  print(sprintf("bp: %i vector", length(bp)))
 
 
   # Check genotype matrix
