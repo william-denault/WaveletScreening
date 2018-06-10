@@ -38,6 +38,7 @@ batchSize = as.numeric(args[2])
 ### SET INPUT HERE
 
 workdir <- "/media/local-disk2/jjuod/other/wt/"
+resdir <- "results/momsX/"
 
 # read phenotype and covariate data
 pheno <- read.table(paste0(workdir, "bw/bw_moms.txt"), h=T)
@@ -49,7 +50,7 @@ Yall46 <- pheno$VEKT
 Confounderall46 <- as.matrix(pheno[,3:ncol(pheno)])
 
 # identify slices to read
-slices = read.table(paste0(workdir, "bw/slicedef_moms_autosomes.txt"), h=F, sep=" ")
+slices = read.table(paste0(workdir, "bw/slicedef_moms_X.txt"), h=F, sep=" ")
 slicestem = paste0(workdir, "slicesbw/moms_")
 
 ### END OF INPUT SETTINGS
@@ -134,14 +135,14 @@ for(i in start:end){
 }
 
 write.table(res_coefc,
-			paste0(workdir, "results/res_coefc_", start, "-", end, ".txt"),
+			paste0(workdir, resdir, "res_coefc_", start, "-", end, ".txt"),
 			row.names=F, col.names=T, quote=F)
 write.table(res_coefd,
-			paste0(workdir, "results/res_coefd_", start, "-", end, ".txt"),
+			paste0(workdir, resdir, "res_coefd_", start, "-", end, ".txt"),
 			row.names=F, col.names=T, quote=F)
 write.table(res_coefc_aa46,
-			paste0(workdir, "results/res_coefc_aa46_", start, "-", end, ".txt"),
+			paste0(workdir, resdir, "res_coefc_aa46_", start, "-", end, ".txt"),
 			row.names=F, col.names=T, quote=F)
 write.table(res_coefd_aa46,
-			paste0(workdir, "results/res_coefd_aa46_", start, "-", end, ".txt"),
+			paste0(workdir, resdir, "res_coefd_aa46_", start, "-", end, ".txt"),
 			row.names=F, col.names=T, quote=F)

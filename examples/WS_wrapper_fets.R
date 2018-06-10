@@ -40,24 +40,19 @@ batchSize = as.numeric(args[2])
 workdir <- "/media/local-disk2/jjuod/other/wt/"
 
 # read phenotype and covariate data
-pheno <- read.table(paste0(workdir, "bw/bw_moms.txt"), h=T)
+pheno <- read.table(paste0(workdir, "bw/bw_fets.txt"), h=T)
 Yall <- pheno$VEKT
 Confounderall <- as.matrix(pheno[,3:ncol(pheno)])
 
-pheno <- read.table(paste0(workdir, "bw/bw_moms_aa46.txt"), h=T)
-Yall46 <- pheno$VEKT
-Confounderall46 <- as.matrix(pheno[,3:ncol(pheno)])
-
 # identify slices to read
-slices = read.table(paste0(workdir, "bw/slicedef_moms_autosomes.txt"), h=F, sep=" ")
-slicestem = paste0(workdir, "slicesbw/moms_")
+slices = read.table(paste0(workdir, "bw/slicedef_fets_autosomes.txt"), h=F, sep=" ")
+slicestem = paste0(workdir, "slicesbw/fets_")
 
 ### END OF INPUT SETTINGS
 #########################
 
 
 print(paste("Specified model: Y ~", paste(colnames(Confounderall), collapse=" + ")))
-print(paste("Specified model: Y ~", paste(colnames(Confounderall46), collapse=" + ")))
 print(sprintf("%i slices read from definition file", nrow(slices)))
 
 start = batch*batchSize+1
@@ -69,7 +64,7 @@ if(start>end){
 }
 
 
-res_coefc = res_coefd  = res_coefc_aa46 = res_coefd_aa46 = data.frame()
+res_coefc = res_coefd = data.frame()
 
 # loop over slices
 for(i in start:end){
@@ -96,7 +91,7 @@ for(i in start:end){
   # Save the results into a result matrix after each run.
   res <- c("chr"=slices[i,1],"start"=slices[i,2],"end"=slices[i,3],temp)
   res_coefc <- rbind(res_coefc, t(res))
-  print("analysis with coeftype C, no AA46, completed successfully")
+  print("analysis with coeftype C completed successfully")
   print(proc.time()-ptm)
 
   ## SETTINGS 2
@@ -107,41 +102,15 @@ for(i in start:end){
 
   res <- c("chr"=slices[i,1],"start"=slices[i,2],"end"=slices[i,3],temp)
   res_coefd <- rbind(res_coefd, t(res))
-  print("analysis with coeftype D, no AA46, completed successfully")
+  print("analysis with coeftype D completed successfully")
   print(proc.time()-ptm)
 
-  ## SETTINGS 3
-  ptm <- proc.time()
-  temp <- NULL
-  temp <- Wavelet_screaming(Y=Yall46,loci=my_slice,bp=bp,confounder=Confounderall46,
-  						  lev_res=9, sigma_b=0.2, coeftype="c", para=FALSE)
-
-  res <- c("chr"=slices[i,1],"start"=slices[i,2],"end"=slices[i,3],temp)
-  res_coefc_aa46 <- rbind(res_coefc_aa46, t(res))
-  print("analysis with coeftype C, with AA46, completed successfully")
-  print(proc.time()-ptm)
-
-  ## SETTINGS 4
-  ptm <- proc.time()
-  temp <- NULL
-  temp <- Wavelet_screaming(Y=Yall46,loci=my_slice,bp=bp,confounder=Confounderall46,
-  						  lev_res=9, sigma_b=0.2, coeftype="d", para=FALSE)
-
-  res <- c("chr"=slices[i,1],"start"=slices[i,2],"end"=slices[i,3],temp)
-  res_coefd_aa46 <- rbind(res_coefd_aa46, t(res))
-  print("analysis with coeftype D, with AA46, completed successfully")
-  print(proc.time()-ptm)
 }
 
 write.table(res_coefc,
-			paste0(workdir, "results/res_coefc_", start, "-", end, ".txt"),
+			paste0(workdir, "results/fetsAUTO/res_coefc_", start, "-", end, ".txt"),
 			row.names=F, col.names=T, quote=F)
 write.table(res_coefd,
-			paste0(workdir, "results/res_coefd_", start, "-", end, ".txt"),
+			paste0(workdir, "results/fetsAUTO/res_coefd_", start, "-", end, ".txt"),
 			row.names=F, col.names=T, quote=F)
-write.table(res_coefc_aa46,
-			paste0(workdir, "results/res_coefc_aa46_", start, "-", end, ".txt"),
-			row.names=F, col.names=T, quote=F)
-write.table(res_coefd_aa46,
-			paste0(workdir, "results/res_coefd_aa46_", start, "-", end, ".txt"),
-			row.names=F, col.names=T, quote=F)
+
