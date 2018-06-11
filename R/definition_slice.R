@@ -39,7 +39,7 @@ slice_definition <- function(bp,Loci_size=1e6,thresh=1e4,Chr=NA)
   }
   
   #Check distance between problematic spacing
-  Width_loci <- rep(0,length(my_index))
+  Width_loci <- rep(0,length(my_index)-1)
 
 
   #######################################
@@ -56,34 +56,43 @@ slice_definition <- function(bp,Loci_size=1e6,thresh=1e4,Chr=NA)
 
   for(i in 1:(length(my_index)-1))
   {
-  	my_diff <- bp[my_index][i+1]-bp[my_index][i]
+    my_diff <- bp[my_index][i+1]-bp[my_index][i]
  
-  	if( my_diff >= Loci_size ) #True means ok to run a wavelet analysis between my_index[i] and my_index[i+1]
-  	{
-  	  Width_loci[i] <- my_diff
+    if( my_diff >= Loci_size ) #True means ok to run a wavelet analysis between my_index[i] and my_index[i+1]
+    {
+      Width_loci[i] <- my_diff
 
-      if(my_diff >= 1.5*Loci_size)
+      if(my_diff -1>= 1.5*Loci_size)
       {
         temp1 <-0
-        while(temp1  + Loci_size < my_diff)
+        while(temp1 + Loci_size < my_diff)
         {
-          #definition of one slice with a "dense" enough region (-1 +1 just to insure that we keep the SNPs)
-          my_loci <- c(Chr, bp[my_index][i]+temp1-1, bp[my_index][i]+temp1+Loci_size+1)
-          df <- rbind(df,my_loci)
+	  # add one slice if there's at least one SNP inside region
+          # (-1 +1 just to ensure that we keep edge SNPs)
+          my_loci <- data.frame(Chr, posStart=bp[my_index][i]+temp1-1, posEnd=bp[my_index][i]+temp1+Loci_size+1)
+          if(any(bp >= my_loci[,2] & bp <= my_loci[,3])){
+            df <- rbind(df,my_loci)
+	  }
 
           temp1 <- temp1 +Loci_size/2
         }
 
         #to get the last part which is the rest of width_loci[i]/1.5*loci_size
-        my_loci <- c(Chr, bp[my_index][i+1]-Loci_size-1, bp[my_index][i+1]+1 )
-        df <- rbind(df,my_loci)
+        my_loci <- data.frame(Chr, posStart=bp[my_index][i+1]-Loci_size-1, posEnd=bp[my_index][i+1]+1 )
+        if(any(bp >= my_loci[,2] & bp <= my_loci[,3])){
+	  df <- rbind(df,my_loci)
+	}
       }
       else
       {
-        my_loci <- c(Chr,bp[my_index][i]-1, bp[my_index][i] + Loci_size + 1 )
-        df <- rbind(df,my_loci)
-        my_loci <- c(Chr,bp[my_index][i+1] - Loci_size-1, bp[my_index][i+1] + 1 )
-        df <- rbind(df,my_loci)
+        my_loci <- data.frame(Chr, posStart=bp[my_index][i]-1, posEnd=bp[my_index][i] + Loci_size + 1 )
+        if(any(bp >= my_loci[,2] & bp <= my_loci[,3])){
+	  df <- rbind(df,my_loci)
+	}
+        my_loci <- data.frame(Chr, posStart=bp[my_index][i+1] - Loci_size-1, posEnd=bp[my_index][i+1] + 1 )
+        if(any(bp >= my_loci[,2] & bp <= my_loci[,3])){
+	  df <- rbind(df,my_loci)
+	}
       }
     }
   }

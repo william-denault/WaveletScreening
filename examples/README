@@ -1,0 +1,7 @@
+# Run Order
+
+0. have phenotype data and imputed genotypes
+1. make phenotype file using bw_phenoprep.R
+2. make slice definition txt file using defineslices.R
+3. extract each defined slice using process_slices.sh (calls make_slice.sh)
+4. analyze each slice

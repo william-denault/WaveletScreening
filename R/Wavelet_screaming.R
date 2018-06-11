@@ -1,7 +1,7 @@
 #'@title Main function to perform wavelet screaming
 #'@description  Perform a wavelet screening of a loci for a given phenotype and a specified level of resolution
 #'@param Y phenotype vector, has to be numeric. For case control code it as 0 and 1. Multiple label phenotype will be implemented in the next version
-#'@param loci genotype matrix, line=SNP in increasing order in term of  base pair, columun individual genoype. No missing value allowed.
+#'@param loci genotype matrix (either data.frame or numeric matrix). Lines=SNPs in increasing order in term of base pair, columns=individuals. No missing values allowed.
 #'@param bp vector of the base pairs positions. It has to be in the same order and length than the loci line order/length.
 #'@param confounder the confounding matrix with the same sample order as Y. The intercept should not be included, if missing will generate a intercept matrix.
 #'@param lev_res the maximum level of resolution needed
@@ -46,8 +46,8 @@
 #'type_fn <-sample(0:2,replace = TRUE,size=n_size,  prob=  sampl_schem  )
 #'
 #'
-#'genotype_df <-  data.frame(matrix(my_functions[my_bp,2 ], ncol=1 ) %*%t(matrix(type_fn,ncol=1)))
-#'#dim(genotype_df)= nSNP, nind
+#'genotype <-  matrix(my_functions[my_bp,2 ], ncol=1 ) %*%t(matrix(type_fn,ncol=1))
+#'#dim(genotype)= nSNP, nind
 #'
 #'###############################################################
 #'#Generate a phenotype with variance explained by genotype  0.5%
@@ -64,9 +64,12 @@
 #'##################
 #'#Wavelet screaming
 #'##################
+#'res <- Wavelet_screaming( Y,loci=genotype,bp=my_bp,
+#'                          lev_res=6,sigma_b = 0.2)
+#'# or:
+#'genotype_df <- as.data.frame(genotype)
 #'res <- Wavelet_screaming( Y,loci=genotype_df,bp=my_bp,
 #'                          lev_res=6,sigma_b = 0.2)
-#'
 #'#############
 #'#Significance
 #'#############
@@ -119,12 +122,10 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   sigma_b <- sigma_b
 
 
-
   # INPUT CHECKS
   print("Input dimensions:")
-  if(!is.numeric(Y) | length(Y)==0){
-  stop("ERROR: Y is not a numeric vector")
-
+  if(!is.numeric(Y) || length(Y)==0){
+    stop("ERROR: Y is not a numeric vector")
   } else {
   	print(sprintf("%i phenotypes detected", length(Y)))
   	if(all(Y %in% c(0,1))){
@@ -136,9 +137,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   	}
   }
 
-  ##########################
-  #Writing the design matrix
-  ##########################
+  # Writing the design matrix
   if(missing(confounder)) {
   	print("no covariates provided, using intercept only")
   	confounder <- data.frame(confounding=rep(1,length(Y)) )
@@ -146,25 +145,17 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   	stop("ERROR: number of samples in Y and confounder does not match")
   } else {
   	print(sprintf("%i covariates for %i samples detected", ncol(confounder), nrow(confounder)))
-	confounder <- rbind(rep(1,length(Y)),confounder)
+	  confounder <- cbind(rep(1,length(Y)),confounder)
   }
 
 
-  print("Input dimensions:")
-  print(sprintf("Y: %i vector", length(Y)))
-  print(sprintf("loci: %i x %i", nrow(loci), ncol(loci)))
-  print(sprintf("bp: %i vector", length(bp)))
-
-
-
-  if(missing(coeftype))
-  {
-    coeftype <-"d"
-  }
   # Check genotype matrix
-  if(missing(loci)| (length(which(is.na(loci))) >=1) ){#| !is.numeric(loci)){
-  	print("ERROR: genotype matrix missing or contain missing values")
-    return(NA)
+  if(is.data.frame(loci)){
+  	print("Converting genotype data to matrix")
+  	loci <- as.matrix(loci)
+  }
+  if(missing(loci) || !is.numeric(loci)){
+  	stop("ERROR: genotype matrix missing or not numeric")
   } else if(ncol(loci)!=length(Y)){
   	stop("ERROR: number of samples in Y and loci does not match")
   } else {
@@ -172,12 +163,43 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   }
 
   # Check position vector
-  if(!is.numeric(bp) | !is.vector(bp)){
+  if(!is.numeric(bp) || !is.vector(bp)){
   	stop("ERROR: must provide numeric position vector")
   } else {
   	print(sprintf("positions for %i SNPs read", length(bp)))
+  }
 
+  # Clean missing samples from all inputs
+  keepY <- complete.cases(Y)
+  keepC <- complete.cases(confounder)
+  keepGT <- complete.cases(t(loci))
+  nonmissing_index <- which(keepGT & keepY & keepC)
+  if(length(nonmissing_index) != length(Y)){
+  	print(sprintf("Warning: %i individuals will be removed due to missingness",
+  			length(Y) - length(nonmissing_index)))
+  }
 
+  Y <- Y[nonmissing_index]
+  confounder <- confounder[nonmissing_index,]
+  loci <- loci[,nonmissing_index]
+
+  print(paste("N individuals analysed = ", dim(loci)[2],
+  			", N SNPs analysed = ",dim(loci)[1]))
+
+  # workaround for git issue #1 - mysteriously empty slices
+  if(is.null(dim(loci)) || dim(loci)[1] < 2^lev_res || dim(loci)[2] < 2){
+  	print("Warning: not enough genotypes remaining, returning empty output")
+
+    # Naming the output
+    names_BF <- c("BF_0_0")
+    for(i in 1:lev_res){
+  	  for (j in 1:(2^i)){
+  		names_BF <- c(names_BF,paste("BF",i,j,sep = "_"))
+  	  }
+    }
+    out = rep(NA, 1+lev_res+1+length(names_BF))
+    names(out) <- c("Lambda", paste("pi",0:lev_res, sep = "_"), names_BF)
+    return(out)
   }
 
   ####################################
@@ -270,9 +292,6 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
       p_vec <-c(p_vec,pi)
     }
     return(p_vec)
-
-
-
   }
 
 
@@ -289,7 +308,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   ###################
   print("Wavelet processing")
 
-  Time01 <- (my_bp- min(my_bp))/(max(my_bp)-min(my_bp))
+  Time01 <- (bp- min(bp))/(max(bp)-min(bp))
   my_wavproc <- function(y)
   {
     #Kovac and Silvermann 2000
@@ -307,7 +326,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
     	} else if (coeftype == "c") {
 		        res <- c(res, accessC( LDIRWD,lev = i) )
     	} else {
-    		stop(paste("ERROR: coeftype", coeftype, "not recognized") )
+    		stop(paste("ERROR: coeftype", coeftype, "not recognized"))
     	}
     }
 
@@ -316,7 +335,6 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
 
   if(para==TRUE)
   {
-    lev_res=lev_res
     clusterExport(cl,"irregwd")
     clusterExport(cl,"threshold")
     clusterExport(cl,"madmad")
