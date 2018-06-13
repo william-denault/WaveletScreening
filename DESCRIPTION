@@ -20,4 +20,5 @@ Depends:
     EbayesThresh (>= 1.4-12),
     fExtremes (>= 3042.82)
 RoxygenNote: 6.0.1
- 
+Suggests: knitr, rmarkdown
+VignetteBuilder: knitr
