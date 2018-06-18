@@ -22,9 +22,9 @@ Soon on CRAN
 
 See help from Wavelet_screaming
 
-Generating fake data:
+###Generating fake data:
 
-```{r cars}
+```{r , echo=FALSE}
 library(ggplot2)
 #########################################
 #Generate a randomly sample loci size=1Mb
@@ -66,23 +66,116 @@ varexp=0.005
 var_noise <- (1-varexp)*var(sample(0:2,replace = TRUE,size=10000,
                                   prob=sampl_schem ))/varexp
 Y <-  rnorm(n=n_size,sd=sqrt(var_noise)) +type_fn
-library(ggplot2)
-
-df <- data.frame(y=Y,type_geno=as.factor(type_fn))
-ggplot(df,aes(x=type_geno,y=Y))+
- geom_boxplot()
-
-ggplot(df,aes(x=type_geno,y=Y))+
- geom_boxplot()
 
 ```
 
-## Including Plots
+### Performing the analysis
 
-You can also embed plots, for example:
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+
+
+
+```{r , echo=FALSE}
+res <- Wavelet_screaming( Y,loci=genotype,bp=my_bp,
+                         lev_res=6,sigma_b = 0.2)
+# or:
+genotype_df <- as.data.frame(genotype)
+res <- Wavelet_screaming( Y,loci=genotype_df,bp=my_bp,
+                         lev_res=6,sigma_b = 0.2)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+
+### Assessing the significance
+
+The test statistics of the Wavelet Screaming method relly of the distribution of the computed Bayes factors use during the computation. The Bayes factors distribution depend on two parameters, however if the sample size (individuals) is big enough one of this parameter, can be set as zero safely. So the Bayes factors depend only on one parameter that can be computed as follow:
+
+(it takes 2-3 minutes)
+```{r , echo=FALSE}
+lambda <- get_lambda1(Y,sigma_b = 0.2)
+```
+
+
+We then simulate the null distribution of the test statistics depending of the parameter lambda and the Wavelet Screaming settings:
+```{r , echo=FALSE}
+Sim_gam <- Simu_Lambda_null(nsimu=10000, lambda=lambda,lev_res = 6)
+```
+
+
+####Pvalue estimation
+
+We use the simulated observations of the null distribution to fit an Generalized Pareto Distribution that correctly approximate the high quantile of the null distribution of the test statistics.  We then use this fitted distribution to estimated the associated quantile of the observation and so the  p-value.
+```{r , echo=FALSE}
+#Should be preferred for smaller values of Lambda
+
+x <-  Simu_gam
+z = gpdFit(x, u = min(x), type = "mle")
+z
+pval <- 1-fExtremes::pgpd(q=res["Lambda"], xi=z@fit$par.ests["xi"], mu=z@parameter$u, beta=z@fit$par.ests["beta"])
+pval
+```
+
+###Visualisation
+
+You can visualize your result with the function *plot_WS*
+It represents the Bayes factor for the different levels scales of the wavelets decomposition.
+The size and the darkness of the points that represent the Bayes factor are scaled by the value of the Bayes factors. If a Bayes factor is greater than 1 then the region that represent the Bayes factor is filled up in order to give an orverview of the size and the origin of the genetic signal.
+
+
+```{r , echo=FALSE}
+bp <- c(min(my_bp),max(my_bp))
+plot_WS(res=res,bp=bp,lev_res=6)
+```
+
+
+
+
+# Full Genome screening
+
+You can find in the folder *examples* our script for full genome screening.
+
+## Slicing
+
+ As the Wavelet Screaming is made to analysis region of the genome, the first step is to divide your data set in *screenable regions*. The function *slice_definition* is made for that, the user has to specify the size of the slice that he/she wants to analyse (Loci_size) AND the maximum gap between two SNPs (thresh option) (our set up Loci_size=1e6,thresh=1e4).
+
+Below a script that slice vcf file and store the slice in a directory. This slice will be analyze in a second time
+
+```{r , echo=FALSE}
+library(WaveletScreaming)
+
+setwd("yourworking path")
+outdir = "your output path"
+bcftools = "whereisyour/bcftools"
+
+args = commandArgs(TRUE)
+
+for(chr in args){
+	print(chr)
+	cmd = paste0(bcftools, " query -f '%POS\n' -e 'AC/AN<0.01 | AC/AN>0.99' moms_", chr, ".vcf.gz")
+	bp = readLines(pipe(cmd))
+	if(length(bp)==0) stop("ERROR: no positions read!")
+	print(sprintf("for maternal chr %s, %i snps read", chr, length(bp)))
+	bp = as.numeric(bp)
+	print(head(bp))
+	s = slice_definition(bp, 1e6, 1e4, chr)
+	write.table(s, paste0(outdir, "slicedef_moms_", chr, ".txt"), quote=F, col.names=F, row.names=F)
+	
+	cmd = paste0(bcftools, " query -f '%POS\n' -e 'AC/AN<0.01 | AC/AN>0.99' fets_", chr, ".vcf.gz")
+	bp = readLines(pipe(cmd))
+	if(length(bp)==0) stop("ERROR: no positions read!")
+	print(sprintf("for fetal chr %s, %i snps read", chr, length(bp)))
+	bp = as.numeric(bp)
+	print(head(bp))
+	s = slice_definition(bp, 1e6, 1e4, chr)
+	write.table(s, paste0(outdir, "slicedef_fets_", chr, ".txt"), quote=F, col.names=F, row.names=F)
+}
+
+```
+
+
+
+
+## Phenotype management
+
+IMPORTANT: The Wavelet Screaminng function assumes that your covariate, your counfunder matrix and your genotype matrix are sorted in the same order.
+
