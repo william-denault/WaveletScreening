@@ -31,7 +31,9 @@ A named vector. First position the estimated value of the Lambda statistics, the
 Perform a wavelet screening of a loci for a given phenotype and a specified level of resolution
 }
 \details{
-TBD
+The Wavelet_screaming function computes the Likelihood ratio used for testing significance of a genetic region. In addition it computes
+the porportion of wavelets coefficients associated by level of resolution, and the Bayes factor used for this estimation. All the details
+of the computation can be found in our paper "Wavelet Screaming: a novel look to GWAS data"
 }
 \examples{
 \dontrun{
