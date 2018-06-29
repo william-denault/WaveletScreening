@@ -28,7 +28,7 @@ getCore = function(pheno){
 		filter(Role=="Mother")
 	# 7065, incl. multiple pregs
 	print(sprintf("%i core mothers found", nrow(coremoms)))
-	
+
 	corekids <<- filter(flags, genotypesOK, phenotypesOK, coreOK) %>%
 		semi_join(pheno, ., by=c("SentrixID_1"="IID")) %>%
 		filter(Role=="Child")
@@ -55,7 +55,7 @@ attachCovariates = function(corepaired, dataset, numPCs){
 	corepaired = select(flags, one_of(c("IID", "BATCH"))) %>%
 		left_join(corepaired, ., by=c("SentrixID_1" = "IID")) %>%
 		mutate(BATCH = as.numeric(BATCH=="M24"))
-	
+
 	# read in correct ibd-exclusion list and pca-covar file
 	if(dataset=="moms"){
 		ibd = read.table(paste0(harvdir, "ibd_pihat_exclude_mothers"))
@@ -66,10 +66,10 @@ attachCovariates = function(corepaired, dataset, numPCs){
 	} else {
 		return()
 	}
-	
+
 	colnames(ibd) = c("FID1", "IID1", "IID2", "PIHAT")
 	colnames(pcs)[1:2] = c("FID", "SentrixID_1")
-	
+
 	corepaired = inner_join(corepaired, pcs[,2:(numPCs+2)], by="SentrixID_1") %>%
 		anti_join(ibd, by=c("SentrixID_1"="IID1"))
 	print(sprintf("after attaching covariates, %i remain", nrow(corepaired)))
@@ -88,12 +88,12 @@ makeOutputs = function(corepaired, phenofile, dataset){
 	} else {
 		return()
 	}
-	
+
 	samplelist = read.table(samplelist, h=F)
 	out = left_join(samplelist, corepaired, by=c("V1"="SentrixID_1"))[,-2]
 	write.table(out, col.names=T, row.names=F, quote=F,
 				file=paste0(outdir, phenofile, ".txt"))
-	
+
 	if(dataset=="fets"){
 		samplelistx = read.table(samplelistx, h=F)
 		outx = left_join(samplelistx, corepaired, by=c("V1"="SentrixID_1"))[,-2]
@@ -122,7 +122,7 @@ final = filter(m, FLERFODSEL==0,
 			   C00_MALF_ALL==0,
 			   !is.na(SVLEN_DG))
 
-nrow(final) 
+nrow(final)
 
 attachPheno(final)
 getCore(linkm)
@@ -132,32 +132,25 @@ corepaired = removeRepeated(coremoms, corekids)
 corepaired = corepaired[,c("PREG_ID_1724", "SentrixID_1", "VEKT", "SVLEN_DG", "KJONN")]
 
 corepaired = attachCovariates(corepaired, "moms", 10)
-makeOutputs(corepaired, "bw_moms", "moms") 
+makeOutputs(corepaired, "bw_moms", "moms")
 
 ## FETAL
 corepaired = removeRepeated(corekids, coremoms)
 corepaired = corepaired[,c("PREG_ID_1724", "SentrixID_1", "VEKT", "SVLEN_DG", "KJONN")]
 
 corepaired = attachCovariates(corepaired, "fets", 10)
-makeOutputs(corepaired, "bw_fets", "fets") 
+makeOutputs(corepaired, "bw_fets", "fets")
 
 
-## WITH AA46 covariate
+## FOR AA46, MATERNAL
 finalq = inner_join(final, q1, by="PREG_ID_1724")
 
 attachPheno(finalq)
 getCore(linkm)
-## MATERNAL
+
 corepaired = removeRepeated(coremoms, corekids)
-corepaired = corepaired[,c("PREG_ID_1724", "SentrixID_1", "VEKT", "SVLEN_DG", "KJONN", "AA46")]
+corepaired = corepaired[,c("PREG_ID_1724", "SentrixID_1", "AA46", "MORS_ALDER")]
 
 corepaired = attachCovariates(corepaired, "moms", 10)
-makeOutputs(corepaired, "bw_moms_aa46", "moms") 
-
-## FETAL
-corepaired = removeRepeated(corekids, coremoms)
-corepaired = corepaired[,c("PREG_ID_1724", "SentrixID_1", "VEKT", "SVLEN_DG", "KJONN", "AA46")]
-
-corepaired = attachCovariates(corepaired, "fets", 10)
-makeOutputs(corepaired, "bw_fets_aa46", "fets") 
+makeOutputs(corepaired, "moms_aa46", "moms")
 

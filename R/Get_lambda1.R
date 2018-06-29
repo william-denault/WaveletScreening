@@ -24,7 +24,7 @@ get_lambda1 <- function(Y, confounder, sigma_b)
     stop("ERROR: Y is not a numeric vector")
   } else {
     print(sprintf("%i phenotypes detected", length(Y)))
-    if(all(Y %in% c(0,1))){
+    if(all(Y %in% c(0, 1, NA))){
       print("Binary phenotype detected")
     } else if(!is.vector(Y)){
       stop("ERROR: Y is not a vector. Multi-phenotype analysis not implemented yet.")
