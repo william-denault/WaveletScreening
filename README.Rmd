@@ -182,8 +182,11 @@ IMPORTANT: The Wavelet Screaminng function assumes that your covariate, your cou
 
 
 ## Genome Wide Run
+Below a code to deal with genome wide data.
+In the *example* folder you will find detailed code to use the Wavelet Screaming package through the terminal in combinaison with *bcftools*.
+We choose to store the slice instead of working directly in memory, it might not be optimal however it is more handy when you want to perform various model: different type of wavelet coefficients, different counfounding structure and different phenotype.
+The provided scripts are already parallelised.
 
-Script available in the *example* folder
 
 ```{r , echo=FALSE}
 #!/usr/bin/Rscript
@@ -277,7 +280,7 @@ for(i in start:end){
   ptm <- proc.time()
   temp <- NULL
   temp <- Wavelet_screaming(Y=Yall,loci=my_slice,bp=bp,confounder=Confounderall,
-  						  lev_res=9, sigma_b=0.2, coeftype="c", para=FALSE)
+  						  lev_res=9, sigma_b=0.2, coeftype="d", para=FALSE)
 
   # Save the results into a result matrix after each run.
   res <- c("chr"=slices[i,1],"start"=slices[i,2],"end"=slices[i,3],temp)
@@ -289,7 +292,7 @@ for(i in start:end){
   ptm <- proc.time()
   temp <- NULL
   temp <- Wavelet_screaming(Y=Yall,loci=my_slice,bp=bp,confounder=Confounderall,
-  						  lev_res=9, sigma_b=0.2, coeftype="d", para=FALSE)
+  						  lev_res=9, sigma_b=0.2, coeftype="c", para=FALSE)
   # Save the results into a result matrix after each run
   res <- c("chr"=slices[i,1],"start"=slices[i,2],"end"=slices[i,3],temp)
   res_coefd <- rbind(res_coefd, t(res))
