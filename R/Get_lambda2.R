@@ -1,20 +1,4 @@
-#'@title Compute lambda1 for BF null distribution
-#'@description Compute the lambda parameter of the Bayes factors null distribution.
-#'@param Y a vector of the variable of interest.
-#'@param confounder the confounding matrix with same a number of line equal to the length of Y. The intercept should not be included, if missing will generate a intercept matrix.
-#'@param sigma_b value of the prior used in the Wavelet screaming.
-#'@export
-#'@references Quan Zhou and Yongtao Guan, On the Null Distribution of Bayes Factors in linear Regression, Journal of the American Statistical Association, 518, 2017.
-#'@details Compute the lambda parameter of the Bayes factors distribution using its closed form which is provided in the paper of Quan Zhou and Yongtao Guan.
-#'@seealso \code{\link{get_ncp}}
-#'@examples \dontrun{
-#'Y <- rnorm(n=1000)
-#'sigma <-0.2
-#'get_lambda1(Y=Y,sigma_b=sigma)
-#'}
-
-
-get_lambda1 <- function(Y, confounder, sigma_b)
+get_lambda2 <- function(Y, confounder, sigma_b)
 {
   Y <- as.vector(Y)
 
@@ -64,15 +48,7 @@ get_lambda1 <- function(Y, confounder, sigma_b)
   X= PW %*% L
   HB = X %*% solve(t(X) %*% X + diag(1/sigma_b/sigma_b,p)) %*% t(X)
 
-  lambda <- svd(HB, nu=0, nv=0)$d[1]
+  lambda <- rARPACK::svds(HB, k=1)$d[1]
 
   return(lambda)
 }
-
-
-
-
-
-
-
-
