@@ -90,7 +90,7 @@
 #'#Via EVT
 #'#Should be preferred for smaller values of Lambda
 #'
-#'x <-  Simu_gam
+#'x <-  Sim_gam
 #'z = gpdFit(x, u = min(x), type = "mle")
 #'z
 #'pval <- 1-fExtremes::pgpd(q=res["Lambda"], xi=z@fit$par.ests["xi"], mu=z@parameter$u, beta=z@fit$par.ests["beta"])

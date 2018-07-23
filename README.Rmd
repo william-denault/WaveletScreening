@@ -183,7 +183,7 @@ IMPORTANT: The Wavelet Screaminng function assumes that your covariate, your cou
 
 ## Genome Wide Run
 
-
+Script available in the *example* folder
 
 ```{r , echo=FALSE}
 #!/usr/bin/Rscript
