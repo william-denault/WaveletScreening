@@ -30,7 +30,7 @@
 #'                          f2=c(rep(0,400000),rep(2,200000),rep(0,400000)))
 #'
 #'
-#'
+#'library(gridExtra)
 #'###########################
 #'#Minor allele frequency 30%
 #'###########################
@@ -56,10 +56,28 @@
 #'var_noise <- (1-varexp)*var(sample(0:2,replace = TRUE,size=10000,
 #'                                   prob=sampl_schem ))/varexp
 #'Y <-  rnorm(n=n_size,sd=sqrt(var_noise)) +type_fn
-#'library(ggplot2)
-#'df <- data.frame(y=Y,type_geno=as.factor(type_fn))
-#'ggplot(df,aes(x=type_geno,y=Y))+
-#'  geom_boxplot()
+#'df <- data.frame(y=Y,genotype =factor(type_fn))
+#'P1 <- ggplot(df,aes(y=y,x=genotype))+
+#'  geom_boxplot()+
+#'  xlab("Type of genotype")+
+#'  theme(axis.text=element_text(size=12),
+#'        axis.title=element_text(size=14,face="bold"))+
+#'  ylab("Simulated Phenotype")+
+#'  theme_bw()+
+#'  ggtitle("Variation of the phenotype\ndepending of the genotype, \nVariance explained =0.5%")
+#'
+#'df <- data.frame(bp= rep(my_bp,3),y=c(my_functions[my_bp,1],my_functions[my_bp,2],my_functions[my_bp,3]),
+#'                 mycol = factor(c(rep("f0",length(my_bp)),rep("f1",length(my_bp)),rep("f2",length(my_bp))) ) )
+#'
+#'P2 <- ggplot(df,aes(y=y,x=bp,color=mycol))+
+#'  geom_point(size=1)+
+#'  xlab("Base pair")+
+#'  ylab("Number of variants")+
+#'  theme_bw()+
+#'  theme(legend.title=element_blank())+
+#'  ggtitle("Three different kind of genotype signal")
+#'
+#'grid.arrange(P1,P2,ncol=2)
 #'
 #'##################
 #'#Wavelet screaming
@@ -90,6 +108,7 @@
 #'#Via EVT
 #'#Should be preferred for smaller values of Lambda
 #'
+#'library(fExtremes)
 #'x <-  Sim_gam
 #'z = gpdFit(x, u = min(x), type = "mle")
 #'z
