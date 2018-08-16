@@ -4,7 +4,7 @@
 \alias{plot_WS}
 \title{Data visualisation for Wavelet screaming output}
 \usage{
-plot_WS(res, bp, lev_res, fill, dg)
+plot_WS(res, bp, lev_res, fill, dg, BF_lev)
 }
 \arguments{
 \item{res}{Output of Wavelet_screaming.}
@@ -16,6 +16,8 @@ plot_WS(res, bp, lev_res, fill, dg)
 \item{fill}{logical, if not provide set as TRUE.}
 
 \item{dg}{numerical, the number of digits display on the x axe. If missing set at 3.}
+
+\item{BF_lev}{Level of Bayes Factor use to overlay regions. IF missing set as 1.}
 }
 \value{
 return a ggplot

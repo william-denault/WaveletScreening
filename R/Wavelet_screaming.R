@@ -88,6 +88,8 @@
 #'genotype_df <- as.data.frame(genotype)
 #'res <- Wavelet_screaming( Y,loci=genotype_df,bp=my_bp,
 #'                          lev_res=6,sigma_b = 0.2)
+#'#value of the test statistic
+#'res["Lambda"]
 #'#############
 #'#Significance
 #'#############

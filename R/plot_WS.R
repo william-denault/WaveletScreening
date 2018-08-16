@@ -5,13 +5,14 @@
 #'@param lev_res the maximum level of resolution needed, has to be less or equal to the request level of resolution in the Wavelet_screaming.
 #'@param fill logical, if not provide set as TRUE.
 #'@param dg numerical, the number of digits display on the x axe. If missing set at 3.
+#'@param  BF_lev Level of Bayes Factor use to overlay regions. IF missing set as 1.
 #'@return return a ggplot
 #' @details The function generate a ggplot from the wavelet screaming output. It represents the Bayes factor for the different levels scales of the wavelets decomposition.
 #'The size and the darkness of the points that represent the Bayes factor are scaled by the value of the Bayes factors.
 #'If a Bayes factor is greater than 1 then the region that represent the Bayes factor is filled up in order to give an orverview of the size and the origin of the genetic signal.
 #'@seealso \code{\link{Wavelet_screaming}}
 
-plot_WS <- function(res,bp,lev_res,fill,dg)
+plot_WS <- function(res,bp,lev_res,fill,dg,BF_lev)
 {
 
   if(missing(fill))
@@ -25,6 +26,11 @@ plot_WS <- function(res,bp,lev_res,fill,dg)
   if(missing(bp))
   {
     bp=c(0,1)
+  }
+
+  if(missing(BF_lev))
+  {
+    BF_lev=1
   }
 
   res <- res[-c(1:(lev_res+2))]
@@ -48,7 +54,7 @@ plot_WS <- function(res,bp,lev_res,fill,dg)
 
   }
   point_size <- res
-  point_size[which(res<1)]<-NA
+  point_size[which(res< BF_lev )]<-NA
 
   #############
   #Option here
