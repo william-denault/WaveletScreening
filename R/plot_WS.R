@@ -96,7 +96,7 @@ plot_WS <- function(res,bp,lev_res,fill,dg,BF_lev)
       scale_fill_gradient(low = 'blue', high ='red' ,guide='none')+
       guides( size = FALSE)+
       ylab("Level of resolution")+
-      xlab("Base pair")+
+      xlab("Base pair position")+
       scale_y_continuous(breaks=unique(df_fill$y ), labels =0:lev_res)+
       scale_x_continuous(breaks=seq(0,1 ,by=0.125), labels =format(seq(min(bp),max(bp),length.out = 9), digits =dg, scientific = TRUE))+
       theme_bw()
