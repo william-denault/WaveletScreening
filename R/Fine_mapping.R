@@ -33,9 +33,9 @@ fine_map <- function(res,lev_res,thresh,start,end,chr)
       for ( j in 1: length(ltt))
       {
         startpos <- as.numeric(start)-1 +
-          (ltt[j] )*(1/(2^i)) *(as.numeric(end) -as.numeric(start) )
+          (ltt[j] -1)*(1/(2^i)) *(as.numeric(end) -as.numeric(start) )
         endpos <- as.numeric(start)-1 +
-          (ltt[j]+1 )*(1/(2^i)) *(as.numeric(end) -as.numeric(start)  )
+          (ltt[j] )*(1/(2^i)) *(as.numeric(end) -as.numeric(start)  )
 
         chr <- chr
 
