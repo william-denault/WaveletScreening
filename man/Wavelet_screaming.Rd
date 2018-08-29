@@ -136,7 +136,9 @@ pval
 
 library(fExtremes)
 x <-  Sim_gam
-z = gpdFit(x, u = min(x), type = "mle")
+#Selecting the threshold
+thresh <- min(  max (c( 2.5*mean( Sim_Gamma) , quantile(Sim_Gamma,0.98)) ), quantile(Sim_Gamma,0.97))
+z = gpdFit(x, u = thresh , type = "mle")
 z
 pval <- 1-fExtremes::pgpd(q=res["Lambda"], xi=z@fit$par.ests["xi"], mu=z@parameter$u, beta=z@fit$par.ests["beta"])
 pval
