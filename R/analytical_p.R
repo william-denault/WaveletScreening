@@ -9,13 +9,13 @@
 
 
 
-analytical_p <- function(sub,lambda,ncp )
+analytical_p <- function(sub,lambda,ncp,thresh )
 {
   if(missing(thresh))
   {
     thresh <-1
   }
-  if(missing(thresh))
+  if(missing(ncp))
   {
     ncp <-0
   }
@@ -27,12 +27,12 @@ analytical_p <- function(sub,lambda,ncp )
     break
   }
 
-  BF <- sub[which( as.numeric(sub)>thresh ) ]
+  BF <- as.numeric(sub[which( as.numeric(sub)>thresh ) ])
 
   quant  <- (2*log(BF)-log(1 - lambda))/lambda
 
 
-  pval <- pchisq(q, df=1, ncp =  ncp, lower.tail = FALSE)
+  pval <- pchisq(quant, df=1, ncp =  ncp, lower.tail = FALSE)
 
   return(pval)
 
