@@ -2,7 +2,23 @@
 #'@description  EM procedure for sub tree
 #'@param sub a Output of extract_treet
 #'@return Estimated proportion for the sub tree
-
+#'@examples \dontrun{
+#'
+#'#using res for the Wavelet_screaming exemple
+#'
+#'
+#'sub_analysis <- function(res, lev_res )
+#'{
+#'  sub <- extract_tree(res,lev_res=lev_res)
+#'  my_pi <- adaptative_EM_Lambda(sub)
+#'  out <-  adaptative_Lambda (my_pi, sub)
+#'  return(out)
+#'}
+#'
+#'
+#'sub_analysis(res, 6)
+#'
+#'}
 
 
 

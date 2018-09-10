@@ -3,11 +3,24 @@
 #'@param res Output of Wavelet_screaming.
 #'@param lev_res the maximum level of resolution needed, has to be less or equal to the request level of resolution in the Wavelet_screaming.
 #'@param thresh Minimal value of the Bayes Factor to  defined the a sub region, if missing set as 1.
-
-
 #'@return A vector correpsonding of the sub tree for the zoomed analysis.
-
-
+#'@examples \dontrun{
+#'
+#'#using res for the Wavelet_screaming exemple
+#'
+#'
+#'sub_analysis <- function(res, lev_res )
+#'{
+#'  sub <- extract_tree(res,lev_res=lev_res)
+#'  my_pi <- adaptative_EM_Lambda(sub)
+#'  out <-  adaptative_Lambda (my_pi, sub)
+#'  return(out)
+#'}
+#'
+#'
+#'sub_analysis(res, 6)
+#'
+#'}
 
 
 
