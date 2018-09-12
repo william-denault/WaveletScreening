@@ -18,7 +18,7 @@ fine_map <- function(res,lev_res,thresh,start,end,chr)
   }
   k <-1
   temp <- lev_res+2
-  l1 <- which(res[,- c(1:temp )] >thresh )
+  l1 <- which(res[- c(1:temp )] >thresh )
   fmap <- list()
   for (i in 1: lev_res)
   {
