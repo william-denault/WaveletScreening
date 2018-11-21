@@ -4,8 +4,8 @@
 \alias{Wavelet_screaming}
 \title{Main function to perform wavelet screaming}
 \usage{
-Wavelet_screaming(Y, loci, bp, confounder, lev_res, sigma_b, coeftype = "d",
-  para = FALSE)
+Wavelet_screaming(Y, loci, bp, confounder, lev_res, sigma_b,
+  coeftype = "d", para = FALSE)
 }
 \arguments{
 \item{Y}{phenotype vector, has to be numeric. For case control code it as 0 and 1. Multiple label phenotype will be implemented in the next version}

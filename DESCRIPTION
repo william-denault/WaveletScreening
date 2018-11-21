@@ -13,6 +13,6 @@ Depends:
     snow (>= 0.4-2),
     wavethresh (>= 4.6.8),
     ggplot2 (>= 2.2.1)
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
 Suggests: knitr, rmarkdown, data.table, fExtremes (>= 3042.82)
 VignetteBuilder: knitr

@@ -4,7 +4,7 @@
 \alias{analytical_p}
 \title{Analytical pvalue for for loci with only one Bayes Factor over a threshold}
 \usage{
-analytical_p(sub, lambda, ncp)
+analytical_p(sub, lambda, ncp, thresh)
 }
 \arguments{
 \item{lambda}{the lambda parameter of the null distribution of the Bayes Factor.}

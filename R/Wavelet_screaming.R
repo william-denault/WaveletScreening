@@ -241,7 +241,14 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   #Quantile transform to prevent for non normaliy distrib WCs
   Quantile_transform  <- function(x)
   {
+    .ex.seed <- exists(".Random.seed")
+    if(.ex.seed) .oldseed <- .Random.seed
+    set.seed(666)
+    if(.ex.seed) on.exit(.Random.seed <<- .oldseed)
+
+
     x.rank = rank(x, ties.method="random")
+    #x.rank = rank(x, ties.method="average")
     return(qqnorm(x.rank,plot.it = F)$x)
   }
 

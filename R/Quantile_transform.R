@@ -11,6 +11,6 @@
 
 Quantile_transform <- function(x)
 {
-  x.rank = rank(x, ties.method="random")
+  x.rank = rank(x, ties.method="average")
   return(qqnorm(x.rank,plot.it = F)$x)
 }
