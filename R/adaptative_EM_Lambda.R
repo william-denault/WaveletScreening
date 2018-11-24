@@ -1,6 +1,6 @@
 #'@title  EM procedure for sub tree
 #'@description  EM procedure for sub tree
-#'@param sub a Output of extract_treet
+#'@param sub a Output of extract_tree
 #'@return Estimated proportion for the sub tree
 #'@examples \dontrun{
 #'

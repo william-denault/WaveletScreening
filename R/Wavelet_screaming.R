@@ -130,7 +130,7 @@
 #'}
 
 
-Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",para=FALSE)
+Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",para=FALSE,betas=FALSE)
 {
   #Loci: genotype matrix, line=SNP order in increasing bp, column individual genoype
   #bp: position of the SNP in term of base pair
@@ -159,7 +159,9 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   		print("Continuous phenotype detected")
   	}
   }
-
+  if(missing(betas)) {
+    betas <- FALSE
+  }
   # Writing the design matrix
   if(missing(confounder)) {
   	print("no covariates provided, using intercept only")
@@ -409,6 +411,8 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   }
 
 
+
+
   if(para==TRUE)
   {
     clusterExport(cl,"log.T")
@@ -420,6 +424,23 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
     my_bayes <- apply(Gen_W_trans, 2, my_bf )
   }
 
+  if(betas ==TRUE)
+  {
+    print("Computing Beta values")
+    betas_f <- function(y)
+    {
+      confounder <- data.frame(confounder)
+      pc <- dim(confounder)[2]
+      Dmat <- cbind(confounder,Y)
+      Dmat <- as.matrix(Dmat)
+
+      res <- solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2])) %*% t(Dmat)%*% y
+      index <- pc+1
+
+      return(res[index,1])
+    }
+    my_betas <- apply(Gen_W_trans, 2, betas_f )
+  }
 
   #################
   #Estimation Lambda
@@ -428,21 +449,57 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   my_pis <- max_EM_Lambda(my_bayes = my_bayes)
   trueLambda <- Lambda_stat(my_pi = my_pis,my_bayes = my_bayes)
 
-  out <- c(trueLambda,my_pis,my_bayes)
-
-  #Naming the output
-  names_BF <- c("BF_0_0")
-  for(i in 1:lev_res)
+  if(betas ==FALSE)
   {
-    for (j in 1:(2^i))
-    {
-      names_BF <- c(names_BF,paste("BF",i,j,sep = "_"))
-    }
+    out <- c(trueLambda,my_pis,my_bayes)
+  }
+  else
+  {
+    out <- c(trueLambda,my_pis,my_bayes,my_betas)
   }
 
-  names(out) <- c("Lambda",
-                  paste("pi",0:lev_res, sep = "_"),
-                  names_BF)
+  #Naming the output
+  if(betas ==FALSE)
+  {
+   names_BF <- c("BF_0_0")
+   for(i in 1:lev_res)
+   {
+     for (j in 1:(2^i))
+     {
+       names_BF <- c(names_BF,paste("BF",i,j,sep = "_"))
+     }
+   }
+
+   names(out) <- c("Lambda",
+                   paste("pi",0:lev_res, sep = "_"),
+                   names_BF)
+  }
+  else
+  {
+    names_BF <- c("BF_0_0")
+    for(i in 1:lev_res)
+    {
+      for (j in 1:(2^i))
+      {
+        names_BF <- c(names_BF,paste("BF",i,j,sep = "_"))
+      }
+    }
+    names_Betas <- c("Beta_0_0")
+    for(i in 1:lev_res)
+    {
+      for (j in 1:(2^i))
+      {
+        names_Betas <- c(names_Betas,paste("Beta",i,j,sep = "_"))
+      }
+    }
+    names(out) <- c("Lambda",
+                    paste("pi",0:lev_res, sep = "_"),
+                    names_BF,names_Betas)
+  }
+
+
+
+
   if(para==TRUE)
   {
     stopCluster(cl)

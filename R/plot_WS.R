@@ -1,6 +1,6 @@
 #'@title Data visualisation for Wavelet screaming output
 #'@description  Data visualisation of Wavelet screaming results
-#'@param res Output of Wavelet_screaming.
+#'@param res Output of Wavelet_screaming, without Betas.
 #'@param bp a vector of the base pairs position of the loci, you can provide only the starting point and the end point of the loci. If missing set as 0, 1.
 #'@param lev_res the maximum level of resolution needed, has to be less or equal to the request level of resolution in the Wavelet_screaming.
 #'@param fill logical, if not provide set as TRUE.
