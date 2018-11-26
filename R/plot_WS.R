@@ -32,7 +32,7 @@ plot_WS <- function(res,bp,lev_res,fill,dg,BF_lev)
   {
     BF_lev=1
   }
-
+  res <- as.numeric(res)
   res <- res[-c(1:(lev_res+2))]
 
   ypos <- seq(from = 1, to = 0, length.out=lev_res+1 )
