@@ -1,14 +1,3 @@
----
-title: "README for Wavelet Screaming package"
-author: "William Denault, Julia Romanowska"
-date: "`r Sys.Date()`"
-output:
-  prettydoc::html_pretty:
-    theme: tactile
-    highlight: github
-    toc: true
----
-
 
 ## Wavelet Screaming: a tutorial
 
