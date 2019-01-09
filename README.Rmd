@@ -1,3 +1,14 @@
+---
+title: "README for Wavelet Screaming package"
+author: "William Denault, Julia Romanowska"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: tactile
+    highlight: github
+    toc: true
+---
+
 
 ## Wavelet Screaming: a tutorial
 
@@ -10,9 +21,11 @@
 
 Using the 'devtools' package:
 
-    > install.packages("devtools")
-    > library(devtools)
-    > install_github("william-denault/WaveletScreaming")
+```{r , eval=FALSE}
+install.packages( "devtools" )
+library( devtools )
+install_github( "william-denault/WaveletScreaming" )
+```
 
 Soon on CRAN
 
