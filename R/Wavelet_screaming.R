@@ -8,6 +8,7 @@
 #'@param sigma_b the parameter of the NIG prior used for the Bayes Factor computation. We advised to set this value between 0.1 and 0.2
 #'@param coeftype type of wavelet coefficient used for the screening. By default set as "d" difference, "c" can be used if you prefere to work in term of amount of variants instead in disrepency within sub loci.
 #'@param para logical parameter for parallelisation, if not specified set at FALSE.
+#'@param betas logical parameter for getting coefficient of wavelet regression, if not specified set at FALSE.
 #'@details The Wavelet_screaming function computes the Likelihood ratio used for testing significance of a genetic region. In addition it computes
 #'the porportion of wavelets coefficients associated by level of resolution, and the Bayes factor used for this estimation. All the details
 #'of the computation can be found in our paper "Wavelet Screaming: a novel look to GWAS data"
