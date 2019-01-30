@@ -4,16 +4,14 @@
 #'@param confounder the confounding matrix with the same sample order as Y. The intercept should not be included, if missing will generate a intercept matrix.
 #'@param sigma_b the parameter of the NIG prior used for the Bayes Factor computation. We advised to set this value between 0.1 and 0.2
 #'@param all logical, if set as TRUE return all the Beta value (including the ones form the confounding factors). If set as FALSE only return the estimate for x, set as FALSE if missing.
-#'@details The Wavelet_screaming function computes the Likelihood ratio used for testing significance of a genetic region. In addition it computes
-#'the porportion of wavelets coefficients associated by level of resolution, and the Bayes factor used for this estimation. All the details
-#'of the computation can be found in our paper "Wavelet Screaming: a novel look to GWAS data"
+#'@details The Wavelet_screaming performed reverse regression so variance for all posterior distribution are equal.
 #'@return A matrix variance covariance matrix
 #'@examples \dontrun{
 #'
 #'x <- rnorm(1000)
 #'y <- x+3
 #'sigma_b <- 0.2
-#'betas(y=y,x=x,sigma_b = sigma_b,all=TRUE)
+#'Cov_Beta(y=y,sigma_b = sigma_b,all=TRUE)
 #'}
 
 
