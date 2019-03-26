@@ -20,8 +20,13 @@ max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {
   betasub = my_betas
   m0.hat<-0
   m1.hat<-0
-  sigma0.hat<-null_sd
+  sigma0.hat<-sqrt(null_sd)
   sigma1.hat<-alt_sd
+  #Prevent from label swapping
+  if(sigma1.hat < sigma0.hat){
+    sigma1.hat <- 3*sigma0.hat+sigma1.hat
+  }
+
   p.hat<-0.5
   new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
   erreur<-1+epsilon

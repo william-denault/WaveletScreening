@@ -6,6 +6,9 @@
 #'@param size number of simulation to be performed
 #'@param sigma_b the parameter of the NIG prior used for the Betas computation.
 #'@retrun The simulation under the null of the two test statistics used to build the final test (i.e L_h and min(ph,pv))
+#'@examples \dontrun{
+#'Sim <- Simu_null(Y=Y,lev_res = 6,sigma_b = 0.2,size=10000)
+#'}
 
 
 
@@ -87,9 +90,6 @@ Simu_null <- function(Y,lev_res,emp_cov,size,sigma_b)
   }
 
 
-  Pi_nt <- list()
-  alt_sd <- sigma_b
-  alp <- 1/sqrt(2*log(length(Y)))
 
 
   max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {
@@ -103,8 +103,13 @@ Simu_null <- function(Y,lev_res,emp_cov,size,sigma_b)
     betasub = my_betas
     m0.hat<-0
     m1.hat<-0
-    sigma0.hat<-null_sd
+    sigma0.hat<-sqrt(null_sd)
     sigma1.hat<-alt_sd
+    #Prevent from label swapping
+    if(sigma1.hat < sigma0.hat){
+      sigma1.hat <- 3*sigma0.hat+sigma1.hat
+    }
+
     p.hat<-0.5
     new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
     erreur<-1+epsilon
@@ -178,6 +183,10 @@ Simu_null <- function(Y,lev_res,emp_cov,size,sigma_b)
     return(c(L_h, min_ph_pv))
   }
 
+  Pi_nt <- list()
+  alt_sd <- sigma_b
+  alp <- 1/sqrt(2*log(length(Y)))
+  print("Simulation of test statistics")
   for (j in (length(Pi_nt)+1):size)
   {
     y <- rmvnorm(1,mean=rep(0,nbeta),sigma =emp_cov )
@@ -191,32 +200,3 @@ Simu_null <- function(Y,lev_res,emp_cov,size,sigma_b)
 
 
 
-
-
-
-
-
-
-
-
-Y<- rnorm(10000)
-
-  N=10000
-  SNP=5000
-  loci<- matrix(runif(N*SNP,min=0,2),ncol=N)
-
-  Gen_W_trans <- apply(loci,2,my_wavproc)
-  Gen_W_trans = apply(Gen_W_trans, 1, Quantile_transform)
-
-
-
-Dmat <- cbind(rep(1,length(Y)),Y)
-Dmat <- as.matrix(Dmat)
-
-index <- dim(confounder)[2]
-resM <- (1/sigma_b/sigma_b)*solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2]))
-#Starting position for the EM
-null_sd <-as.numeric(resM["Y","Y"])^2
-
-m_s <- cov(Gen_W_trans)*null_sd
-image(m_s)

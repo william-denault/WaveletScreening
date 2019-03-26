@@ -89,21 +89,14 @@
 #'genotype_df <- as.data.frame(genotype)
 #'res <- Wavelet_screaming( Y,loci=genotype_df,bp=my_bp,
 #'                          lev_res=6,sigma_b = 0.2)
-#'#value of the test statistic
-#'res["Lambda"]
+#'#value of the test statistics
+#'res[c("Lambda","min_ph_pv")]
 #'#############
 #'#Significance
 #'#############
 #'
-#'#Estimation of the Bayes factor lambda_1 distribution parameter
-#'#Take a bit of time
-#'lambda <- get_lambda1(Y,sigma_b = 0.2)
-#'#Simulation of the test statistics under the null distribution of
-#'# the Bayes factor
-#'Sim_gam <- Simu_Lambda_null(nsimu=10000, lambda=lambda,lev_res = 6)
-#'val <- res["Lambda"]
-#'
-#'#Via Simulation
+#'#Simulate the null distribution using rpoxy covariance matrix
+#'Sim <- Simu_null(Y=Y,lev_res = 6,sigma_b = 0.2,size=10000)
 #'
 #'pval <-c(length(Sim_gam[which(Sim_gam>val)])+1)/(length(Sim_gam)+1)
 #'pval
@@ -269,8 +262,13 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
     betasub = my_betas
     m0.hat<-0
     m1.hat<-0
-    sigma0.hat<-null_sd
+    sigma0.hat<-sqrt(null_sd)
     sigma1.hat<-alt_sd
+    #Prevent from label swapping
+    if(sigma1.hat < sigma0.hat){
+      sigma1.hat <- 3*sigma0.hat+sigma1.hat
+    }
+
     p.hat<-0.5
     new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
     erreur<-1+epsilon
@@ -343,6 +341,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
     L_h <- sum(lambcom)
     return(c(L_h, min_ph_pv))
   }
+
   ###############
   #Paralelisation
   ###############
