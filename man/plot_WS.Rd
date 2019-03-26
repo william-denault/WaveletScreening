@@ -7,7 +7,7 @@
 plot_WS(res, bp, lev_res, fill, dg, BF_lev)
 }
 \arguments{
-\item{res}{Output of Wavelet_screaming.}
+\item{res}{Output of Wavelet_screaming, without Betas.}
 
 \item{bp}{a vector of the base pairs position of the loci, you can provide only the starting point and the end point of the loci. If missing set as 0, 1.}
 

@@ -5,7 +5,7 @@
 \title{Main function to perform wavelet screaming}
 \usage{
 Wavelet_screaming(Y, loci, bp, confounder, lev_res, sigma_b,
-  coeftype = "d", para = FALSE)
+  coeftype = "d", para = FALSE, BF = FALSE)
 }
 \arguments{
 \item{Y}{phenotype vector, has to be numeric. For case control code it as 0 and 1. Multiple label phenotype will be implemented in the next version}
@@ -23,6 +23,8 @@ Wavelet_screaming(Y, loci, bp, confounder, lev_res, sigma_b,
 \item{coeftype}{type of wavelet coefficient used for the screening. By default set as "d" difference, "c" can be used if you prefere to work in term of amount of variants instead in disrepency within sub loci.}
 
 \item{para}{logical parameter for parallelisation, if not specified set at FALSE.}
+
+\item{BF}{logical parameter for getting Bayes Factor of wavelet regression, if not specified set at FALSE.}
 }
 \value{
 A named vector. First position the estimated value of the Lambda statistics, then the proportion of association per level of resolution then the computed Bayes Factor per wavelet coefficient.

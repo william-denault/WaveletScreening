@@ -7,7 +7,7 @@
 adaptative_EM_Lambda(sub)
 }
 \arguments{
-\item{sub}{a Output of extract_treet}
+\item{sub}{a Output of extract_tree}
 }
 \value{
 Estimated proportion for the sub tree
