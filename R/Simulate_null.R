@@ -11,8 +11,6 @@
 #'}
 
 
-
-
 Simu_null <- function(Y,lev_res,emp_cov,size,sigma_b)
 {
   #Size of the multivaraite to simulate
@@ -197,6 +195,5 @@ Simu_null <- function(Y,lev_res,emp_cov,size,sigma_b)
   colnames(out) <- c("L_h","min_ph_pv")
   return(out)
 }
-
 
 
