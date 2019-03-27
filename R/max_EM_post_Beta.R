@@ -44,6 +44,9 @@ max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {
     m0.hat<-sum((1-temp)* betasub)/(sum(1-temp)+eps)
     sigma1.hat<-sqrt( sum(temp*( betasub-m1.hat)^2)/(sum(temp)+eps) )+alt_sd
     sigma0.hat<-sqrt( sum((1-temp)*( betasub-m0.hat)^2)/(sum(1-temp)+eps) )
+    if(sigma0.hat < 0.9*sqrt(null_sd) ){
+      sigma0.hat <- 0.9*sqrt(null_sd)
+    }
     new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
     #Check end
     new.log.lik<- sum(log(p.hat*dnorm( betasub ,m1.hat,sigma1.hat)+(1-p.hat)*dnorm( betasub ,m0.hat,sigma0.hat)))

@@ -93,7 +93,8 @@
 #'#############
 #'
 #'#Simulate the null distribution using proxy covariance matrix
-#'Sim <- Simu_null(Y,lev_res = 6,sigma_b = 0.2,size=10000)
+#'#Go take a coffee (about 5-7 min)
+#'Sim <- Simu_null(Y,lev_res = 6,sigma_b = 0.2,size=100000)
 #'head(Sim)
 #'#Calibration of the hyperparameter
 #'lambda <- Search_lambda(Sim,plot=TRUE)
@@ -302,8 +303,8 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
       sigma1.hat<-sqrt( sum(temp*( betasub-m1.hat)^2)/(sum(temp)+eps) )+alt_sd
       sigma0.hat<-sqrt( sum((1-temp)*( betasub-m0.hat)^2)/(sum(1-temp)+eps) )
       #limit the decrease of sigma0.hat in case of non identifiable mixture
-      if(sigma0.hat < 0.5*sqrt(null_sd) ){
-        sigma0.hat <- 0.5*sqrt(null_sd)
+      if(sigma0.hat < 0.9*sqrt(null_sd) ){
+        sigma0.hat <- 0.9*sqrt(null_sd)
       }
       new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
       #Check end
@@ -555,4 +556,3 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   }
   return(out)
 }
-

@@ -1,6 +1,6 @@
 #'@title Simulation of the null statsitics
 #'@description  Simulation of the null statsitics
-#'@param Y a vector of numeric values used in in the wavelet screaming function for association
+#'@param Y a vector of numeric values used in in the wavelet screaming function for association.
 #'@param confounder the confounding matrix with the same sample order as Y. The intercept should not be included, if missing will generate a intercept matrix.
 #'@param lev_res the level of resolution in the wavelet transform
 #'@param emp_cov Emprical covariance matrix of the beta values. Can be computed using several results of the wavelet screaming using the betas values for different loci. If missing the function compute an approximation of the covariance matrix, this leads to a lost of power and a more conservative test statitics.
@@ -159,8 +159,8 @@ Simu_null <- function(Y,confounder,lev_res,emp_cov,size,sigma_b,print=TRUE)
       sigma1.hat<-sqrt( sum(temp*( betasub-m1.hat)^2)/(sum(temp)+eps) )+alt_sd
       sigma0.hat<-sqrt( sum((1-temp)*( betasub-m0.hat)^2)/(sum(1-temp)+eps) )
       #limit the decrease of sigma0.hat in case of non identifiable mixture
-      if(sigma0.hat < 0.5*sqrt(null_sd) ){
-        sigma0.hat <- 0.5*sqrt(null_sd)
+      if(sigma0.hat < 0.9*sqrt(null_sd) ){
+        sigma0.hat <- 0.9*sqrt(null_sd)
       }
       new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
       #Check end

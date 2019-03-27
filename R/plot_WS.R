@@ -1,18 +1,19 @@
 #'@title Data visualisation for Wavelet screaming output
 #'@description  Data visualisation of Wavelet screaming results
+#'@param Y a vector of numeric values used in in the wavelet screaming function for association
+#'@param confounder the confounding matrix with the same sample order as Y. The intercept should not be included, if missing will generate a intercept matrix.
 #'@param res Output of Wavelet_screaming, without Betas.
 #'@param bp a vector of the base pairs position of the loci, you can provide only the starting point and the end point of the loci. If missing set as 0, 1.
 #'@param lev_res the maximum level of resolution needed, has to be less or equal to the request level of resolution in the Wavelet_screaming.
 #'@param fill logical, if not provide set as TRUE.
 #'@param dg numerical, the number of digits display on the x axe. If missing set at 3.
-#'@param  BF_lev Level of Bayes Factor use to overlay regions. IF missing set as 1.
 #'@return return a ggplot
 #' @details The function generate a ggplot from the wavelet screaming output. It represents the Bayes factor for the different levels scales of the wavelets decomposition.
 #'The size and the darkness of the points that represent the Bayes factor are scaled by the value of the Bayes factors.
 #'If a Bayes factor is greater than 1 then the region that represent the Bayes factor is filled up in order to give an orverview of the size and the origin of the genetic signal.
 #'@seealso \code{\link{Wavelet_screaming}}
 
-plot_WS <- function(res,bp,lev_res,fill,dg,BF_lev)
+plot_WS <- function(Y,confounder,res,bp,lev_res,fill,dg)
 {
 
   if(missing(fill))
