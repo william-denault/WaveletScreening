@@ -5,7 +5,7 @@
 #'@param bp vector of the base pairs positions. It has to be in the same order and length than the loci line order/length.
 #'@param confounder the confounding matrix with the same sample order as Y. The intercept should not be included, if missing will generate a intercept matrix.
 #'@param lev_res the maximum level of resolution needed
-#'@param sigma_b the parameter of the NIG prior used for the etas computation. We advised to set this value between 0.1 and 0.2
+#'@param sigma_b the parameter of the NIG prior used for the betas computation. We advised to set this value between 0.1 and 0.2
 #'@param coeftype type of wavelet coefficient used for the screening. By default set as "d" difference, "c" can be used if you prefere to work in term of amount of variants instead in disrepency within sub loci.
 #'@param para logical parameter for parallelisation, if not specified set at FALSE.
 #'@param BF logical parameter for getting Bayes Factor of wavelet regression, if not specified set at FALSE.
@@ -85,35 +85,42 @@
 #'##################
 #'res <- Wavelet_screaming( Y,loci=genotype,bp=my_bp,
 #'                          lev_res=6,sigma_b = 0.2)
-#'# or:
-#'genotype_df <- as.data.frame(genotype)
-#'res <- Wavelet_screaming( Y,loci=genotype_df,bp=my_bp,
-#'                          lev_res=6,sigma_b = 0.2)
+#'res
 #'#value of the test statistics
-#'res[c("Lambda","min_ph_pv")]
+#'res[c("L_h","min_ph_pv")]
 #'#############
 #'#Significance
 #'#############
 #'
-#'#Simulate the null distribution using rpoxy covariance matrix
-#'Sim <- Simu_null(Y=Y,lev_res = 6,sigma_b = 0.2,size=10000)
+#'#Simulate the null distribution using proxy covariance matrix
+#'Sim <- Simu_null(Y,lev_res = 6,sigma_b = 0.2,size=10000)
+#'head(Sim)
+#'#Calibration of the hyperparameter
+#'lambda <- Search_lambda(Sim,plot=TRUE)
 #'
-#'pval <-c(length(Sim_gam[which(Sim_gam>val)])+1)/(length(Sim_gam)+1)
-#'pval
+#'Th <- Sim[,c("L_h")]+lambda*Sim[,c("min_ph_pv")]
+#'mu <- median(Th,na.rm = TRUE)
+#'sdv <- mad(Th,na.rm = TRUE)
+#'####################################
+#'#Test Value of the loci to be tested
+#'####################################
+#'th <-  res[c("L_h")]+lambda*res["min_ph_pv"]
+#'#######
+#'#Pvalue
+#'#######
+#'1-pnorm(th,mean=muv,sd=sdv)
 #'
-#'#Via EVT
-#'#Should be preferred for smaller values of Lambda
+#'hist(Th,nclass=1000,xlim=c(min(c(Th,th)),max(Th,th)))
 #'
-#'library(fExtremes)
-#'x <-  Sim_gam
-#'#Selecting the threshold
-#'thresh <- min(  max (c( 2.5*mean( Sim_Gamma) , quantile(Sim_Gamma,0.98)) ), quantile(Sim_Gamma,0.97))
-#'z = gpdFit(x, u = thresh , type = "mle")
-#'z
-#'pval <- 1-fExtremes::pgpd(q=res["Lambda"], xi=z@fit$par.ests["xi"], mu=z@parameter$u, beta=z@fit$par.ests["beta"])
-#'pval
-#'
-#'
+#'df <- data.frame(Th = Th,type = factor( c(rep("Null",length(Th)))) )
+#'ggplot(df,aes(Th,fill=type))+
+#'  xlim(c(min(c(Th,th)),max(Th,th)))+
+#'  geom_density()+
+#'  guides(fill=FALSE)+
+#'  geom_point(aes(x=th, y=0), colour="red")+theme(legend.position="none")+
+#'  geom_text(label="Value of the test statistics", x=th, y=0.001)+
+#'  geom_text(label="Null distribution", x=mean(Th), y=0.001)+
+#'  theme_bw()
 #'##############
 #'#Visualisation
 #'##############
@@ -126,13 +133,20 @@
 
 Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",para=FALSE,BF=FALSE)
 {
-  #Loci: genotype matrix, line=SNP order in increasing bp, column individual genoype
-  #bp: position of the SNP in term of base pair
-  #confounder: designed matrix of the confounding effect size = n,c
-  #n= n ind, c= number of confounder
-  #lev_res: lev of resolution for the wavelet filtering
-  #sigma_b= Para of prior, should be <1 advised 0.2
 
+  #Quantile transform to prevent for non normaliy distrib WCs
+  Quantile_transform  <- function(x)
+  {
+    .ex.seed <- exists(".Random.seed")
+    if(.ex.seed) .oldseed <- .Random.seed
+    set.seed(666)
+    if(.ex.seed) on.exit(.Random.seed <<- .oldseed)
+
+
+    x.rank = rank(x, ties.method="random")
+    #x.rank = rank(x, ties.method="average")
+    return(qqnorm(x.rank,plot.it = F)$x)
+  }
 
   #To ensure the length not to be 0
   Y <- as.vector(Y)
@@ -151,6 +165,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   		stop("ERROR: Y is not a vector. Multi-phenotype analysis not implemented yet.")
   	} else {
   		print("Continuous phenotype detected")
+  	  Y <-   Quantile_transform(Y)
   	}
   }
   if(missing(BF)) {
@@ -252,7 +267,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
 
 
   max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {
-    niter = 1000
+    niter = 100
     epsilon <- 10^-4
     p_vec <- c()
     sd_vec <- c()
@@ -286,11 +301,16 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
       m0.hat<-sum((1-temp)* betasub)/(sum(1-temp)+eps)
       sigma1.hat<-sqrt( sum(temp*( betasub-m1.hat)^2)/(sum(temp)+eps) )+alt_sd
       sigma0.hat<-sqrt( sum((1-temp)*( betasub-m0.hat)^2)/(sum(1-temp)+eps) )
+      #limit the decrease of sigma0.hat in case of non identifiable mixture
+      if(sigma0.hat < 0.5*sqrt(null_sd) ){
+        sigma0.hat <- 0.5*sqrt(null_sd)
+      }
       new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
       #Check end
       new.log.lik<- sum(log(p.hat*dnorm( betasub ,m1.hat,sigma1.hat)+(1-p.hat)*dnorm( betasub ,m0.hat,sigma0.hat)))
-      epsilon <- abs( new.log.lik -old.log.lik)
+      #epsilon <- abs( new.log.lik -old.log.lik)
       iter<-iter+1
+
     }
 
     #Proba Belong belong to the alternative:

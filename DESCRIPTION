@@ -13,7 +13,7 @@ Depends:
     snow (>= 0.4-2),
     wavethresh (>= 4.6.8),
     ggplot2 (>= 2.2.1),
-    mvtnorm (>= 1.0-10)
+    mvtnorm (>= 1.0-8)
 RoxygenNote: 6.1.1
 Suggests: knitr, rmarkdown, data.table, fExtremes (>= 3042.82)
 VignetteBuilder: knitr

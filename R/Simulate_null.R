@@ -1,29 +1,76 @@
 #'@title Simulation of the null statsitics
 #'@description  Simulation of the null statsitics
 #'@param Y a vector of numeric values used in in the wavelet screaming function for association
+#'@param confounder the confounding matrix with the same sample order as Y. The intercept should not be included, if missing will generate a intercept matrix.
 #'@param lev_res the level of resolution in the wavelet transform
 #'@param emp_cov Emprical covariance matrix of the beta values. Can be computed using several results of the wavelet screaming using the betas values for different loci. If missing the function compute an approximation of the covariance matrix, this leads to a lost of power and a more conservative test statitics.
 #'@param size number of simulation to be performed
 #'@param sigma_b the parameter of the NIG prior used for the Betas computation.
-#'@retrun The simulation under the null of the two test statistics used to build the final test (i.e L_h and min(ph,pv))
+#'@param print logical parameter set as TRUE, if TRUE send message when 10\% of the simulations has been completed.
+#'@return The simulation under the null of the two test statistics used to build the final test (i.e L_h and min(ph,pv))
 #'@examples \dontrun{
+#'Y <- rnorm(4000)
 #'Sim <- Simu_null(Y=Y,lev_res = 6,sigma_b = 0.2,size=10000)
 #'}
-
-
-Simu_null <- function(Y,lev_res,emp_cov,size,sigma_b)
+Simu_null <- function(Y,confounder,lev_res,emp_cov,size,sigma_b,print=TRUE)
 {
-  #Size of the multivaraite to simulate
-  nbeta <- sum(2^(0:lev_res))
+  Quantile_transform  <- function(x)
+  {
+    .ex.seed <- exists(".Random.seed")
+    if(.ex.seed) .oldseed <- .Random.seed
+    set.seed(666)
+    if(.ex.seed) on.exit(.Random.seed <<- .oldseed)
 
+
+    x.rank = rank(x, ties.method="random")
+    #x.rank = rank(x, ties.method="average")
+    return(qqnorm(x.rank,plot.it = F)$x)
+  }
+  # INPUT CHECKS
+  print("Input dimensions:")
+  if(!is.numeric(Y) || length(Y)==0){
+    stop("ERROR: Y is not a numeric vector")
+  } else {
+    print(sprintf("%i phenotypes detected", length(Y)))
+    if(all(Y %in% c(0,1))){
+      print("Binary phenotype detected")
+    } else if(!is.vector(Y)){
+      stop("ERROR: Y is not a vector. Multi-phenotype analysis not implemented yet.")
+    } else {
+      print("Continuous phenotype detected")
+      Y <-   Quantile_transform(Y)
+    }
+  }
+  #####################################
+  #Size of the multivaraite to simulate
+  #####################################
+  nbeta <- sum(2^(0:lev_res))
+  ######################################
   #compute theoretical variance of Betas
-  Dmat <- cbind(rep(1,length(Y)),Y)
-  Dmat <- as.matrix(Dmat)
+  ######################################
+  if(missing(confounder))
+  {
+    print("no covariates provided, using intercept only")
+    Dmat <- cbind(rep(1,length(Y)),Y)
+    Dmat <- as.matrix(Dmat)
+  }
+  else if(nrow(confounder)!=length(Y)) {
+    stop("ERROR: number of samples in Y and confounder does not match")
+  } else {
+    print(sprintf("%i covariates for %i samples detected", ncol(confounder), nrow(confounder)))
+    confounder <- cbind(rep(1,length(Y)),confounder)
+    Dmat <- cbind(confounder,Y)
+    Dmat <- as.matrix(Dmat)
+  }
+
+
   sigma_b <- sigma_b
   resM <- (1/sigma_b/sigma_b)*solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2]))
   null_sd <-sigma_b*as.numeric(resM["Y","Y"])^2
-  null_sd
 
+  ##################################
+  #Computing proxy covariance matrix
+  ##################################
   if(missing(emp_cov)){
     print("Empirical Covariance missing computing proxy covariance for simulation")
     lev_res <-lev_res
@@ -51,19 +98,6 @@ Simu_null <- function(Y,lev_res,emp_cov,size,sigma_b)
 
       return(res)
     }
-    #Quantile transform to prevent for non normaliy distrib WCs
-    Quantile_transform  <- function(x)
-    {
-      .ex.seed <- exists(".Random.seed")
-      if(.ex.seed) .oldseed <- .Random.seed
-      set.seed(666)
-      if(.ex.seed) on.exit(.Random.seed <<- .oldseed)
-
-
-      x.rank = rank(x, ties.method="random")
-      #x.rank = rank(x, ties.method="average")
-      return(qqnorm(x.rank,plot.it = F)$x)
-    }
 
     N=length(Y)
     #Generate random signal
@@ -89,9 +123,8 @@ Simu_null <- function(Y,lev_res,emp_cov,size,sigma_b)
 
 
 
-
   max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {
-    niter = 1000
+    niter = 100
     epsilon <- 10^-4
     p_vec <- c()
     sd_vec <- c()
@@ -125,11 +158,16 @@ Simu_null <- function(Y,lev_res,emp_cov,size,sigma_b)
       m0.hat<-sum((1-temp)* betasub)/(sum(1-temp)+eps)
       sigma1.hat<-sqrt( sum(temp*( betasub-m1.hat)^2)/(sum(temp)+eps) )+alt_sd
       sigma0.hat<-sqrt( sum((1-temp)*( betasub-m0.hat)^2)/(sum(1-temp)+eps) )
+      #limit the decrease of sigma0.hat in case of non identifiable mixture
+      if(sigma0.hat < 0.5*sqrt(null_sd) ){
+        sigma0.hat <- 0.5*sqrt(null_sd)
+      }
       new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
       #Check end
       new.log.lik<- sum(log(p.hat*dnorm( betasub ,m1.hat,sigma1.hat)+(1-p.hat)*dnorm( betasub ,m0.hat,sigma0.hat)))
-      epsilon <- abs( new.log.lik -old.log.lik)
+      #epsilon <- abs( new.log.lik -old.log.lik)
       iter<-iter+1
+
     }
 
     #Proba Belong belong to the alternative:
@@ -180,20 +218,42 @@ Simu_null <- function(Y,lev_res,emp_cov,size,sigma_b)
     L_h <- sum(lambcom)
     return(c(L_h, min_ph_pv))
   }
+  ######################
+  #Set up for simulation
+  ######################
 
   Pi_nt <- list()
   alt_sd <- sigma_b
   alp <- 1/sqrt(2*log(length(Y)))
   print("Simulation of test statistics")
-  for (j in (length(Pi_nt)+1):size)
+  temp <- seq(from=1,to=size,by=size/10)[-1]-1
+  if(print==TRUE)
   {
-    y <- rmvnorm(1,mean=rep(0,nbeta),sigma =emp_cov )
-    pis <- max_EM_post_Beta(y, lev_res = lev_res, null_sd = null_sd,alt_sd = alt_sd,alp = alp)
-    Pi_nt[[j]] <-pis
+    for (j in (length(Pi_nt)+1):size)
+    {
+      y <- rmvnorm(1,mean=rep(0,nbeta),sigma =emp_cov )
+      pis <- max_EM_post_Beta(y, lev_res = lev_res, null_sd = null_sd,alt_sd = alt_sd,alp = alp)
+      Pi_nt[[j]] <-pis
+      if(j %in% temp )
+      {
+        print(paste(j, "simulations performed"))
+      }
+
+    }
   }
+  if(print==FALSE)
+  {
+    for (j in (length(Pi_nt)+1):size)
+    {
+      y <- rmvnorm(1,mean=rep(0,nbeta),sigma =emp_cov )
+      pis <- max_EM_post_Beta(y, lev_res = lev_res, null_sd = null_sd,alt_sd = alt_sd,alp = alp)
+      Pi_nt[[j]] <-pis
+    }
+  }
+
+
+
   out <- do.call(rbind,Pi_nt)
   colnames(out) <- c("L_h","min_ph_pv")
   return(out)
 }
-
-

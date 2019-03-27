@@ -18,7 +18,7 @@ Wavelet_screaming(Y, loci, bp, confounder, lev_res, sigma_b,
 
 \item{lev_res}{the maximum level of resolution needed}
 
-\item{sigma_b}{the parameter of the NIG prior used for the Bayes Factor computation. We advised to set this value between 0.1 and 0.2}
+\item{sigma_b}{the parameter of the NIG prior used for the etas computation. We advised to set this value between 0.1 and 0.2}
 
 \item{coeftype}{type of wavelet coefficient used for the screening. By default set as "d" difference, "c" can be used if you prefere to work in term of amount of variants instead in disrepency within sub loci.}
 
@@ -110,40 +110,18 @@ grid.arrange(P1,P2,ncol=2)
 ##################
 res <- Wavelet_screaming( Y,loci=genotype,bp=my_bp,
                          lev_res=6,sigma_b = 0.2)
-# or:
-genotype_df <- as.data.frame(genotype)
-res <- Wavelet_screaming( Y,loci=genotype_df,bp=my_bp,
-                         lev_res=6,sigma_b = 0.2)
-#value of the test statistic
-res["Lambda"]
+res
+#value of the test statistics
+res[c("Lambda","min_ph_pv")]
 #############
 #Significance
 #############
 
-#Estimation of the Bayes factor lambda_1 distribution parameter
-#Take a bit of time
-lambda <- get_lambda1(Y,sigma_b = 0.2)
-#Simulation of the test statistics under the null distribution of
-# the Bayes factor
-Sim_gam <- Simu_Lambda_null(nsimu=10000, lambda=lambda,lev_res = 6)
-val <- res["Lambda"]
-
-#Via Simulation
-
-pval <-c(length(Sim_gam[which(Sim_gam>val)])+1)/(length(Sim_gam)+1)
-pval
-
-#Via EVT
-#Should be preferred for smaller values of Lambda
-
-library(fExtremes)
-x <-  Sim_gam
-#Selecting the threshold
-thresh <- min(  max (c( 2.5*mean( Sim_Gamma) , quantile(Sim_Gamma,0.98)) ), quantile(Sim_Gamma,0.97))
-z = gpdFit(x, u = thresh , type = "mle")
-z
-pval <- 1-fExtremes::pgpd(q=res["Lambda"], xi=z@fit$par.ests["xi"], mu=z@parameter$u, beta=z@fit$par.ests["beta"])
-pval
+#Simulate the null distribution using proxy covariance matrix
+Sim <- Simu_null(Y,lev_res = 6,sigma_b = 0.2,size=10000)
+head(Sim)
+#Calibration of the hyperparameter
+lambda <- Search_lambda(Sim,plot=TRUE)
 
 
 ##############
