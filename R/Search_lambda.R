@@ -78,7 +78,7 @@ Search_lambda <- function(Sim,plot=FALSE)
     print(i)
     if(i >10000)
     {
-      print("Penalization parameter over 10 millions, provide bigger simulation set (suggested size 100k simulation)")
+      print("Penalization parameter over 10 millions, provide bigger simulation set (suggested size 50k simulation)")
       break
     }
   }
@@ -104,7 +104,7 @@ Search_lambda <- function(Sim,plot=FALSE)
 
   if(plot==TRUE)
   {
-    library(latex2exp)
+
     par(mfrow=c(2,1))
     pen <- i*0
     t1 <- lh+pen*(mph_pv)
@@ -117,7 +117,7 @@ Search_lambda <- function(Sim,plot=FALSE)
     muv <- median(t1,na.rm = TRUE)
     sdv <- mad(t1,na.rm = TRUE)
     h <- hist(1-pnorm(t1,mean=muv,sd=sdv),nclass= n_class,
-              main=latex2exp("Histogramm of null p-values using T_{S_{j}}"),xlab = "p value",xlim = c(0,0.1))
+              main=paste("Histogramm of null p-values using T_",j),xlab = "p value",xlim = c(0,0.1))
     par(mfrow=c(1,1))
   }
 

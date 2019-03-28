@@ -111,8 +111,6 @@
 #'#######
 #'1-pnorm(th,mean=muv,sd=sdv)
 #'
-#'hist(Th,nclass=1000,xlim=c(min(c(Th,th)),max(Th,th)))
-#'
 #'df <- data.frame(Th = Th,type = factor( c(rep("Null",length(Th)))) )
 #'ggplot(df,aes(Th,fill=type))+
 #'  xlim(c(min(c(Th,th)),max(Th,th)))+
@@ -298,13 +296,14 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
       temp<-p.hat*dnorm( betasub ,m1.hat,sigma1.hat)/(p.hat*dnorm( betasub ,m1.hat,sigma1.hat)+(1-p.hat)*dnorm( betasub ,m0.hat,sigma0.hat))
       #Update parameter
       p.hat<-mean(temp)
+      #adding slight bias in case of non identifiable mixture
       m1.hat<-sum(temp* betasub)/(sum(temp)+eps)
       m0.hat<-sum((1-temp)* betasub)/(sum(1-temp)+eps)
       sigma1.hat<-sqrt( sum(temp*( betasub-m1.hat)^2)/(sum(temp)+eps) )+alt_sd
       sigma0.hat<-sqrt( sum((1-temp)*( betasub-m0.hat)^2)/(sum(1-temp)+eps) )
       #limit the decrease of sigma0.hat in case of non identifiable mixture
-      if(sigma0.hat < 0.9*sqrt(null_sd) ){
-        sigma0.hat <- 0.9*sqrt(null_sd)
+      if(sigma0.hat < 0.01*sqrt(null_sd) ){
+        sigma0.hat <- 0.01*sqrt(null_sd)
       }
       new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
       #Check end

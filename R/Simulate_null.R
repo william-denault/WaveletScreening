@@ -159,8 +159,8 @@ Simu_null <- function(Y,confounder,lev_res,emp_cov,size,sigma_b,print=TRUE)
       sigma1.hat<-sqrt( sum(temp*( betasub-m1.hat)^2)/(sum(temp)+eps) )+alt_sd
       sigma0.hat<-sqrt( sum((1-temp)*( betasub-m0.hat)^2)/(sum(1-temp)+eps) )
       #limit the decrease of sigma0.hat in case of non identifiable mixture
-      if(sigma0.hat < 0.9*sqrt(null_sd) ){
-        sigma0.hat <- 0.9*sqrt(null_sd)
+      if(sigma0.hat < 0.01*sqrt(null_sd) ){
+        sigma0.hat <- 0.01*sqrt(null_sd)
       }
       new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
       #Check end
