@@ -7,7 +7,7 @@
 Simu_null(Y, confounder, lev_res, emp_cov, size, sigma_b, print = TRUE)
 }
 \arguments{
-\item{Y}{a vector of numeric values used in in the wavelet screaming function for association}
+\item{Y}{a vector of numeric values used in in the wavelet screaming function for association.}
 
 \item{confounder}{the confounding matrix with the same sample order as Y. The intercept should not be included, if missing will generate a intercept matrix.}
 

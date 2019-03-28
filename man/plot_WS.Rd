@@ -4,9 +4,13 @@
 \alias{plot_WS}
 \title{Data visualisation for Wavelet screaming output}
 \usage{
-plot_WS(res, bp, lev_res, fill, dg, BF_lev)
+plot_WS(Y, confounder, res, bp, lev_res, fill, dg)
 }
 \arguments{
+\item{Y}{a vector of numeric values used in in the wavelet screaming function for association}
+
+\item{confounder}{the confounding matrix with the same sample order as Y. The intercept should not be included, if missing will generate a intercept matrix.}
+
 \item{res}{Output of Wavelet_screaming, without Betas.}
 
 \item{bp}{a vector of the base pairs position of the loci, you can provide only the starting point and the end point of the loci. If missing set as 0, 1.}
@@ -16,8 +20,6 @@ plot_WS(res, bp, lev_res, fill, dg, BF_lev)
 \item{fill}{logical, if not provide set as TRUE.}
 
 \item{dg}{numerical, the number of digits display on the x axe. If missing set at 3.}
-
-\item{BF_lev}{Level of Bayes Factor use to overlay regions. IF missing set as 1.}
 }
 \value{
 return a ggplot

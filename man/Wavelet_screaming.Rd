@@ -18,7 +18,7 @@ Wavelet_screaming(Y, loci, bp, confounder, lev_res, sigma_b,
 
 \item{lev_res}{the maximum level of resolution needed}
 
-\item{sigma_b}{the parameter of the NIG prior used for the etas computation. We advised to set this value between 0.1 and 0.2}
+\item{sigma_b}{the parameter of the NIG prior used for the betas computation. We advised to set this value between 0.1 and 0.2}
 
 \item{coeftype}{type of wavelet coefficient used for the screening. By default set as "d" difference, "c" can be used if you prefere to work in term of amount of variants instead in disrepency within sub loci.}
 
@@ -112,18 +112,39 @@ res <- Wavelet_screaming( Y,loci=genotype,bp=my_bp,
                          lev_res=6,sigma_b = 0.2)
 res
 #value of the test statistics
-res[c("Lambda","min_ph_pv")]
+res[c("L_h","min_ph_pv")]
 #############
 #Significance
 #############
 
 #Simulate the null distribution using proxy covariance matrix
-Sim <- Simu_null(Y,lev_res = 6,sigma_b = 0.2,size=10000)
+#Go take a coffee (about 5-7 min)
+Sim <- Simu_null(Y,lev_res = 6,sigma_b = 0.2,size=100000)
 head(Sim)
 #Calibration of the hyperparameter
 lambda <- Search_lambda(Sim,plot=TRUE)
 
+Th <- Sim[,c("L_h")]+lambda*Sim[,c("min_ph_pv")]
+mu <- median(Th,na.rm = TRUE)
+sdv <- mad(Th,na.rm = TRUE)
+####################################
+#Test Value of the loci to be tested
+####################################
+th <-  res[c("L_h")]+lambda*res["min_ph_pv"]
+#######
+#Pvalue
+#######
+1-pnorm(th,mean=muv,sd=sdv)
 
+df <- data.frame(Th = Th,type = factor( c(rep("Null",length(Th)))) )
+ggplot(df,aes(Th,fill=type))+
+ xlim(c(min(c(Th,th)),max(Th,th)))+
+ geom_density()+
+ guides(fill=FALSE)+
+ geom_point(aes(x=th, y=0), colour="red")+theme(legend.position="none")+
+ geom_text(label="Value of the test statistics", x=th, y=0.001)+
+ geom_text(label="Null distribution", x=mean(Th), y=0.001)+
+ theme_bw()
 ##############
 #Visualisation
 ##############

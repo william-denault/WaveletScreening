@@ -38,7 +38,6 @@ Simu_null <- function(Y,confounder,lev_res,emp_cov,size,sigma_b,print=TRUE)
       stop("ERROR: Y is not a vector. Multi-phenotype analysis not implemented yet.")
     } else {
       print("Continuous phenotype detected")
-      Y <-   Quantile_transform(Y)
     }
   }
   #####################################
@@ -66,7 +65,7 @@ Simu_null <- function(Y,confounder,lev_res,emp_cov,size,sigma_b,print=TRUE)
 
   sigma_b <- sigma_b
   resM <- (1/sigma_b/sigma_b)*solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2]))
-  null_sd <-sigma_b*as.numeric(resM["Y","Y"])^2
+  null_sd <-sqrt(sigma_b*as.numeric(resM["Y","Y"])^2)
 
   ##################################
   #Computing proxy covariance matrix
@@ -109,7 +108,7 @@ Simu_null <- function(Y,confounder,lev_res,emp_cov,size,sigma_b,print=TRUE)
     Gen_W_trans <- apply(loci,2,my_wavproc)
     Gen_W_trans = apply(Gen_W_trans, 1, Quantile_transform)
     #Compute proxy for empirical covariance matrix
-    emp_cov <- (cov(Gen_W_trans))*null_sd
+    emp_cov <- (cov(Gen_W_trans))*(null_sd^2)
     print("Proxy Covariance computed")
 
   }
@@ -134,7 +133,7 @@ Simu_null <- function(Y,confounder,lev_res,emp_cov,size,sigma_b,print=TRUE)
     betasub = my_betas
     m0.hat<-0
     m1.hat<-0
-    sigma0.hat<-sqrt(null_sd)
+    sigma0.hat<-null_sd
     sigma1.hat<-alt_sd
     #Prevent from label swapping
     if(sigma1.hat < sigma0.hat){
@@ -159,8 +158,8 @@ Simu_null <- function(Y,confounder,lev_res,emp_cov,size,sigma_b,print=TRUE)
       sigma1.hat<-sqrt( sum(temp*( betasub-m1.hat)^2)/(sum(temp)+eps) )+alt_sd
       sigma0.hat<-sqrt( sum((1-temp)*( betasub-m0.hat)^2)/(sum(1-temp)+eps) )
       #limit the decrease of sigma0.hat in case of non identifiable mixture
-      if(sigma0.hat < 0.01*sqrt(null_sd) ){
-        sigma0.hat <- 0.01*sqrt(null_sd)
+      if(sigma0.hat < 0.01*null_sd ){
+        sigma0.hat <- 0.01*null_sd
       }
       new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
       #Check end

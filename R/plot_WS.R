@@ -1,7 +1,5 @@
 #'@title Data visualisation for Wavelet screaming output
 #'@description  Data visualisation of Wavelet screaming results
-#'@param Y a vector of numeric values used in in the wavelet screaming function for association
-#'@param confounder the confounding matrix with the same sample order as Y. The intercept should not be included, if missing will generate a intercept matrix.
 #'@param res Output of Wavelet_screaming, without Betas.
 #'@param bp a vector of the base pairs position of the loci, you can provide only the starting point and the end point of the loci. If missing set as 0, 1.
 #'@param lev_res the maximum level of resolution needed, has to be less or equal to the request level of resolution in the Wavelet_screaming.
@@ -13,7 +11,7 @@
 #'If a Bayes factor is greater than 1 then the region that represent the Bayes factor is filled up in order to give an orverview of the size and the origin of the genetic signal.
 #'@seealso \code{\link{Wavelet_screaming}}
 
-plot_WS <- function(Y,confounder,res,bp,lev_res,fill,dg)
+plot_WS <- function(res,bp,lev_res,fill,dg)
 {
 
   if(missing(fill))
@@ -28,13 +26,10 @@ plot_WS <- function(Y,confounder,res,bp,lev_res,fill,dg)
   {
     bp=c(0,1)
   }
-
-  if(missing(BF_lev))
-  {
-    BF_lev=1
-  }
+  sel <- names(res)
+  pos <- grep("Pi",sel)
   res <- as.numeric(res)
-  res <- res[-c(1:(lev_res+2))]
+  prt <- res[pos]#posterior probabilities of H1
 
   ypos <- seq(from = 1, to = 0, length.out=lev_res+1 )
   y<- c()
@@ -54,8 +49,8 @@ plot_WS <- function(Y,confounder,res,bp,lev_res,fill,dg)
     }
 
   }
-  point_size <- res
-  point_size[which(res< BF_lev )]<-NA
+  point_size <- res[grep("Beta",sel)]#Betas for size of point
+  point_size[which(prt== 0 )]<-NA
 
   #############
   #Option here
@@ -82,19 +77,18 @@ plot_WS <- function(Y,confounder,res,bp,lev_res,fill,dg)
 
   mx <- c(x,x)
   mycol <- c(df$levres,df$levres)
-  ps <-c(res,res)
-
+  ps <-c(point_size ,point_size )
   df_fill <- data.frame(xfil=xfil ,y=my,group=gl,col =mycol,x=mx, ps =ps)
   if(fill==TRUE)
   {
 
-    P1 <-ggplot(df_fill, aes(x=xfil,y=y, group=group,fill=col))+
+    P1 <- ggplot(df_fill, aes(x=xfil,y=y, group=group,fill=col))+
       geom_area(position="identity")+
-      geom_point(aes(x=x,y=my,size=log10(ps),col=log10(ps)))+
+      geom_point(aes(x=x,y=my,size=ps,col=ps))+
 
-      scale_color_gradient(low = 'gray', high ='black',guide='none' )+
+      scale_color_gradient(low = '#009E73', high ='#D55E00',guide='none' )+
 
-      scale_fill_gradient(low = 'blue', high ='red' ,guide='none')+
+      scale_fill_gradient( high= "#CC79A7", low ="#56B4E9" ,guide='none')+
       guides( size = FALSE)+
       ylab("Level of resolution")+
       xlab("Base pair position")+
@@ -106,7 +100,7 @@ plot_WS <- function(Y,confounder,res,bp,lev_res,fill,dg)
   }
   if(fill==FALSE)
   {
-    P1 <-     ggplot(df_fill, aes(x=x,y=my,size=log10(ps)))+
+    P1 <-     ggplot(df_fill, aes(x=x,y=my,size=ps))+
       guides( size = FALSE)+
       geom_point()+
       scale_y_continuous(breaks=unique(df_fill$y ), labels =0:lev_res)+

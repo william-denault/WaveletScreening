@@ -20,7 +20,7 @@ max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {
   betasub = my_betas
   m0.hat<-0
   m1.hat<-0
-  sigma0.hat<-sqrt(null_sd)
+  sigma0.hat<-null_sd
   sigma1.hat<-alt_sd
   #Prevent from label swapping
   if(sigma1.hat < sigma0.hat){
@@ -46,8 +46,8 @@ max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {
     sigma1.hat<-sqrt( sum(temp*( betasub-m1.hat)^2)/(sum(temp)+eps) )+alt_sd
     sigma0.hat<-sqrt( sum((1-temp)*( betasub-m0.hat)^2)/(sum(1-temp)+eps) )
     #limit the decrease of sigma0.hat in case of non identifiable mixture
-    if(sigma0.hat < 0.01*sqrt(null_sd) ){
-      sigma0.hat <- 0.01*sqrt(null_sd)
+    if(sigma0.hat < 0.01*null_sd ){
+      sigma0.hat <- 0.01*null_sd
     }
     new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
     #Check end

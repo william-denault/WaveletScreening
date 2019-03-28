@@ -164,7 +164,6 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   		stop("ERROR: Y is not a vector. Multi-phenotype analysis not implemented yet.")
   	} else {
   		print("Continuous phenotype detected")
-  	  Y <-   Quantile_transform(Y)
   	}
   }
   if(missing(BF)) {
@@ -276,7 +275,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
     betasub = my_betas
     m0.hat<-0
     m1.hat<-0
-    sigma0.hat<-sqrt(null_sd)
+    sigma0.hat<-null_sd
     sigma1.hat<-alt_sd
     #Prevent from label swapping
     if(sigma1.hat < sigma0.hat){
@@ -302,15 +301,14 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
       sigma1.hat<-sqrt( sum(temp*( betasub-m1.hat)^2)/(sum(temp)+eps) )+alt_sd
       sigma0.hat<-sqrt( sum((1-temp)*( betasub-m0.hat)^2)/(sum(1-temp)+eps) )
       #limit the decrease of sigma0.hat in case of non identifiable mixture
-      if(sigma0.hat < 0.01*sqrt(null_sd) ){
-        sigma0.hat <- 0.01*sqrt(null_sd)
+      if(sigma0.hat < 0.01*null_sd ){
+        sigma0.hat <- 0.01*null_sd
       }
       new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
       #Check end
       new.log.lik<- sum(log(p.hat*dnorm( betasub ,m1.hat,sigma1.hat)+(1-p.hat)*dnorm( betasub ,m0.hat,sigma0.hat)))
-      #epsilon <- abs( new.log.lik -old.log.lik)
+      epsilon <- abs( new.log.lik -old.log.lik)
       iter<-iter+1
-
     }
 
     #Proba Belong belong to the alternative:
@@ -355,11 +353,16 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
       porth[gi+1] <-  mean(pos.prob[ind])
 
     }
+
+    #Preparing the output
     ph <- sum(p_vec)
     pv <- sum(porth)
     min_ph_pv <- min( ph,pv)
     L_h <- sum(lambcom)
-    return(c(L_h, min_ph_pv))
+    out <- list()
+    out[[1]] <- c(L_h, min_ph_pv)
+    out[[2]] <- pos.prob
+    return( out)
   }
 
   ###############
@@ -487,41 +490,44 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   index <- dim(confounder)[2]
   resM <- (1/sigma_b/sigma_b)*solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2]))
   #Starting position for the EM
-  null_sd <-sigma_b*as.numeric(resM["Y","Y"])^2
+  null_sd <-sqrt(sigma_b*as.numeric(resM["Y","Y"])^2)
   alt_sd <- sigma_b
   #Shrinkage coefficient for the EM
   alp <-  1/sqrt(2*log(length(Y)))
   my_betas <- as.numeric(my_betas)
-  test_stat <- max_EM_post_Beta(my_betas=my_betas, lev_res = lev_res, null_sd =  null_sd, alt_sd = alt_sd,alp = alp)
+  rest <- max_EM_post_Beta(my_betas=my_betas, lev_res = lev_res, null_sd =  null_sd, alt_sd = alt_sd,alp = alp)
 
-
-
+  test_stat <- rest[[1]]
+  postH1 <- rest[[2]]
 
 
   if(BF ==FALSE)
   {
-    out <- c(test_stat,my_betas)
+    out <- c(test_stat,my_betas,postH1)
   }
   else
   {
-    out <-  c(test_stat,my_betas,my_bayes)
+    out <-  c(test_stat,my_betas,postH1,my_bayes)
   }
 
   #Naming the output
   if(BF ==FALSE)
   {
    names_Betas <- c("Beta_0_0")
+   names_postH1 <-  c("Pi_0_0")
    for(i in 1:lev_res)
    {
      for (j in 1:(2^i))
      {
-       names_Betas <- c(names_Betas,paste("BF",i,j,sep = "_"))
+       names_Betas <- c(names_Betas,paste("Beta",i,j,sep = "_"))
+       names_postH1 <- c(names_postH1,paste("Pi",i,j,sep = "_"))
      }
    }
 
    names(out) <- c("L_h",
                    "min_ph_pv",
-                   names_Betas)
+                   names_Betas,
+                   names_postH1)
   }
   else
   {
@@ -534,16 +540,20 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
       }
     }
     names_Betas <- c("Beta_0_0")
+    names_postH1 <-  c("Pi_0_0")
     for(i in 1:lev_res)
     {
       for (j in 1:(2^i))
       {
         names_Betas <- c(names_Betas,paste("Beta",i,j,sep = "_"))
+        names_postH1 <- c(names_postH1,paste("Pi",i,j,sep = "_"))
       }
     }
     names(out) <- c("L_h",
                     "min_ph_pv",
-                    names_Betas,names_BF)
+                    names_Betas,
+                    names_postH1,
+                    names_BF)
   }
 
 
