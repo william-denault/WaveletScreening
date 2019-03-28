@@ -63,9 +63,9 @@ Simu_null <- function(Y,confounder,lev_res,emp_cov,size,sigma_b,print=TRUE)
   }
 
 
-  sigma_b <- sigma_b
   resM <- (1/sigma_b/sigma_b)*solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2]))
-  null_sd <-sqrt(sigma_b*as.numeric(resM["Y","Y"])^2)
+  null_sd <-sqrt(as.numeric(resM["Y","Y"]))
+
 
   ##################################
   #Computing proxy covariance matrix
@@ -74,6 +74,15 @@ Simu_null <- function(Y,confounder,lev_res,emp_cov,size,sigma_b,print=TRUE)
     print("Empirical Covariance missing computing proxy covariance for simulation")
     lev_res <-lev_res
     coeftype="c"
+
+
+    N=length(Y)
+    #Generate random signal
+    SNP=lev_res*500
+    loci<- matrix(rnorm(N*SNP),ncol=N)
+    bp= 1:SNP
+    #Preparing for the wavelet transform
+    Time01 <- (bp- min(bp))/(max(bp)-min(bp))
     my_wavproc <- function(y)
     {
       #Kovac and Silvermann 2000
@@ -81,8 +90,6 @@ Simu_null <- function(Y,confounder,lev_res,emp_cov,size,sigma_b,print=TRUE)
       LDIRWD <- irregwd(mygrid,filter.number=1)
       class(LDIRWD) <- "wd"
       #Thresholding here
-      LDIRWD <- threshold(LDIRWD,policy = "universal",type="hard",
-                          dev = madmad,levels = 1:(LDIRWD$nlevels-1))
 
       res <- c()
       for(i in 0: lev_res){
@@ -97,18 +104,10 @@ Simu_null <- function(Y,confounder,lev_res,emp_cov,size,sigma_b,print=TRUE)
 
       return(res)
     }
-
-    N=length(Y)
-    #Generate random signal
-    SNP=lev_res*500
-    loci<- matrix(runif(N*SNP,min=0,2),ncol=N)
-    bp= 1:SNP
-    #Preparing for the wavelet transform
-    Time01 <- (bp- min(bp))/(max(bp)-min(bp))
     Gen_W_trans <- apply(loci,2,my_wavproc)
     Gen_W_trans = apply(Gen_W_trans, 1, Quantile_transform)
     #Compute proxy for empirical covariance matrix
-    emp_cov <- (cov(Gen_W_trans))*(null_sd^2)
+    emp_cov <- (cov(Gen_W_trans))*null_sd
     print("Proxy Covariance computed")
 
   }
@@ -119,6 +118,7 @@ Simu_null <- function(Y,confounder,lev_res,emp_cov,size,sigma_b,print=TRUE)
     }
 
   }
+
 
 
 
@@ -153,6 +153,7 @@ Simu_null <- function(Y,confounder,lev_res,emp_cov,size,sigma_b,print=TRUE)
       temp<-p.hat*dnorm( betasub ,m1.hat,sigma1.hat)/(p.hat*dnorm( betasub ,m1.hat,sigma1.hat)+(1-p.hat)*dnorm( betasub ,m0.hat,sigma0.hat))
       #Update parameter
       p.hat<-mean(temp)
+      #adding slight bias in case of non identifiable mixture
       m1.hat<-sum(temp* betasub)/(sum(temp)+eps)
       m0.hat<-sum((1-temp)* betasub)/(sum(1-temp)+eps)
       sigma1.hat<-sqrt( sum(temp*( betasub-m1.hat)^2)/(sum(temp)+eps) )+alt_sd
@@ -166,7 +167,6 @@ Simu_null <- function(Y,confounder,lev_res,emp_cov,size,sigma_b,print=TRUE)
       new.log.lik<- sum(log(p.hat*dnorm( betasub ,m1.hat,sigma1.hat)+(1-p.hat)*dnorm( betasub ,m0.hat,sigma0.hat)))
       #epsilon <- abs( new.log.lik -old.log.lik)
       iter<-iter+1
-
     }
 
     #Proba Belong belong to the alternative:
@@ -206,11 +206,12 @@ Simu_null <- function(Y,confounder,lev_res,emp_cov,size,sigma_b,print=TRUE)
         temp <- cbind(tempstart,tempend)
         p1 <- temp[j,1]
         p2 <- temp[j,2]
-        ind <- c(p1:p2 )
+        ind <- c(ind, p1:p2 )
       }
       porth[gi+1] <-  mean(pos.prob[ind])
 
     }
+
     ph <- sum(p_vec)
     pv <- sum(porth)
     min_ph_pv <- min( ph,pv)

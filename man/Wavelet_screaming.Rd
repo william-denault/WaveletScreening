@@ -118,14 +118,14 @@ res[c("L_h","min_ph_pv")]
 #############
 
 #Simulate the null distribution using proxy covariance matrix
-#Go take a coffee (about 5-7 min)
-Sim <- Simu_null(Y,lev_res = 6,sigma_b = 0.2,size=100000)
+
+Sim <- Simu_null(Y,lev_res = 6,sigma_b = 0.2,size=10000)
 head(Sim)
 #Calibration of the hyperparameter
 lambda <- Search_lambda(Sim,plot=TRUE)
 
 Th <- Sim[,c("L_h")]+lambda*Sim[,c("min_ph_pv")]
-mu <- median(Th,na.rm = TRUE)
+muv <- median(Th,na.rm = TRUE)
 sdv <- mad(Th,na.rm = TRUE)
 ####################################
 #Test Value of the loci to be tested

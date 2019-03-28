@@ -8,7 +8,6 @@
 #'@return The two test statistics used to build the final test (i.e L_h and min(ph,pv))
 
 
-
 max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {
   niter = 100
   epsilon <- 10^-4
@@ -52,8 +51,9 @@ max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {
     new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
     #Check end
     new.log.lik<- sum(log(p.hat*dnorm( betasub ,m1.hat,sigma1.hat)+(1-p.hat)*dnorm( betasub ,m0.hat,sigma0.hat)))
-    epsilon <- abs( new.log.lik -old.log.lik)
+    #epsilon <- abs( new.log.lik -old.log.lik)
     iter<-iter+1
+    print(iter)
   }
 
   #Proba Belong belong to the alternative:
@@ -93,7 +93,7 @@ max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {
       temp <- cbind(tempstart,tempend)
       p1 <- temp[j,1]
       p2 <- temp[j,2]
-      ind <- c(p1:p2 )
+      ind <- c(ind, p1:p2 )
     }
     porth[gi+1] <-  mean(pos.prob[ind])
 

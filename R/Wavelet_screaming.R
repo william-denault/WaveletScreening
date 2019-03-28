@@ -93,14 +93,14 @@
 #'#############
 #'
 #'#Simulate the null distribution using proxy covariance matrix
-#'#Go take a coffee (about 5-7 min)
-#'Sim <- Simu_null(Y,lev_res = 6,sigma_b = 0.2,size=100000)
+#'
+#'Sim <- Simu_null(Y,lev_res = 6,sigma_b = 0.2,size=10000)
 #'head(Sim)
 #'#Calibration of the hyperparameter
 #'lambda <- Search_lambda(Sim,plot=TRUE)
 #'
 #'Th <- Sim[,c("L_h")]+lambda*Sim[,c("min_ph_pv")]
-#'mu <- median(Th,na.rm = TRUE)
+#'muv <- median(Th,na.rm = TRUE)
 #'sdv <- mad(Th,na.rm = TRUE)
 #'####################################
 #'#Test Value of the loci to be tested
@@ -253,7 +253,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   {
     .ex.seed <- exists(".Random.seed")
     if(.ex.seed) .oldseed <- .Random.seed
-    set.seed(666)
+    set.seed(665)
     if(.ex.seed) on.exit(.Random.seed <<- .oldseed)
 
 
@@ -307,7 +307,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
       new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
       #Check end
       new.log.lik<- sum(log(p.hat*dnorm( betasub ,m1.hat,sigma1.hat)+(1-p.hat)*dnorm( betasub ,m0.hat,sigma0.hat)))
-      epsilon <- abs( new.log.lik -old.log.lik)
+      #epsilon <- abs( new.log.lik -old.log.lik)
       iter<-iter+1
     }
 
@@ -348,8 +348,8 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
         temp <- cbind(tempstart,tempend)
         p1 <- temp[j,1]
         p2 <- temp[j,2]
-        ind <- c(p1:p2 )
-      }
+        ind <- c(ind, p1:p2 )
+       }
       porth[gi+1] <-  mean(pos.prob[ind])
 
     }
@@ -490,7 +490,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   index <- dim(confounder)[2]
   resM <- (1/sigma_b/sigma_b)*solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2]))
   #Starting position for the EM
-  null_sd <-sqrt(sigma_b*as.numeric(resM["Y","Y"])^2)
+  null_sd <-sqrt(as.numeric(resM["Y","Y"]))
   alt_sd <- sigma_b
   #Shrinkage coefficient for the EM
   alp <-  1/sqrt(2*log(length(Y)))
