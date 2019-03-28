@@ -78,15 +78,15 @@ plot_WS <- function(res,bp,lev_res,fill,dg)
   mx <- c(x,x)
   mycol <- c(df$levres,df$levres)
   ps <-c(point_size ,point_size )
-  df_fill <- data.frame(xfil=xfil ,y=my,group=gl,col =mycol,x=mx, ps =ps)
+  df_fill <- data.frame(xfil=xfil ,y=my,group=gl,col =mycol,x=mx, ps =abs(ps))
   if(fill==TRUE)
   {
 
     P1 <- ggplot(df_fill, aes(x=xfil,y=y, group=group,fill=col))+
       geom_area(position="identity")+
-      geom_point(aes(x=x,y=my,size=ps,col=ps))+
+      geom_point(aes(x=x,y=my,size=ps+1,col=ps))+
 
-      scale_color_gradient(low = '#009E73', high ='#D55E00',guide='none' )+
+      scale_color_gradient(low = '#00AFBB', high ='#FC4E07',guide='none' )+
 
       scale_fill_gradient( high= "#CC79A7", low ="#56B4E9" ,guide='none')+
       guides( size = FALSE)+
@@ -100,7 +100,7 @@ plot_WS <- function(res,bp,lev_res,fill,dg)
   }
   if(fill==FALSE)
   {
-    P1 <-     ggplot(df_fill, aes(x=x,y=my,size=ps))+
+    P1 <-     ggplot(df_fill, aes(x=x,y=my,size=abs(ps)))+
       guides( size = FALSE)+
       geom_point()+
       scale_y_continuous(breaks=unique(df_fill$y ), labels =0:lev_res)+
