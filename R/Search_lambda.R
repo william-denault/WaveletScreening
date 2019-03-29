@@ -111,7 +111,7 @@ Search_lambda <- function(Sim,plot=FALSE)
     muv <- median(t1,na.rm = TRUE)
     sdv <- mad(t1,na.rm = TRUE)
     h <- hist(1-pnorm(t1,mean=muv,sd=sdv),nclass= n_class,
-              main=latex2exp("Histogramm of null p-values using L_h"),xlab = "p value",xlim = c(0,0.1))
+              main=c("Histogramm of null p-values using L_h"),xlab = "p value",xlim = c(0,0.1))
     pen <- j
     t1 <- lh+pen*(mph_pv)
     muv <- median(t1,na.rm = TRUE)

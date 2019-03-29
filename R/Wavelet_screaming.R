@@ -48,6 +48,7 @@
 #'
 #'
 #'genotype <-  matrix(my_functions[my_bp,2 ], ncol=1 ) %*%t(matrix(type_fn,ncol=1))
+#'genotype <- genotype+ rnorm(dim(genotype)[1]*dim(genotype)[2])
 #'#dim(genotype)= nSNP, nind
 #'
 #'###############################################################
@@ -486,8 +487,6 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
 
   Dmat <- cbind(confounder,Y)
   Dmat <- as.matrix(Dmat)
-
-  index <- dim(confounder)[2]
   resM <- (1/sigma_b/sigma_b)*solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2]))
   #Starting position for the EM
   null_sd <-sqrt(as.numeric(resM["Y","Y"]))
