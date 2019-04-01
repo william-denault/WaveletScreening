@@ -476,7 +476,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   Dmat <- cbind(confounder,Y)
   Dmat <- as.matrix(Dmat)
   beta_0 <- c()
-  for( i in 1:100)
+  for( i in 1:500)
   {
     y <- rnorm(length(Y),sd=1)
     temp <- solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2])) %*% t(Dmat)%*% y
