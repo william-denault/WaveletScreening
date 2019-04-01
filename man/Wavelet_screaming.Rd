@@ -73,6 +73,7 @@ type_fn <-sample(0:2,replace = TRUE,size=n_size,  prob=  sampl_schem  )
 
 
 genotype <-  matrix(my_functions[my_bp,2 ], ncol=1 ) \%*\%t(matrix(type_fn,ncol=1))
+genotype <- genotype+ rnorm(dim(genotype)[1]*dim(genotype)[2],sd=0.1)
 #dim(genotype)= nSNP, nind
 
 ###############################################################

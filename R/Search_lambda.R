@@ -75,7 +75,7 @@ Search_lambda <- function(Sim,plot=FALSE)
     temp <- rank(x)[1]
     hyp <- c( hyp,temp )
     pos_check <- c(pos_check,i)
-    print(i)
+
     if(i >10000)
     {
       print("Penalization parameter over 10 millions, provide bigger simulation set (suggested size 50k simulation)")

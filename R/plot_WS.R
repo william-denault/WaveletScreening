@@ -86,9 +86,9 @@ plot_WS <- function(res,bp,lev_res,fill,dg)
       geom_area(position="identity")+
       geom_point(aes(x=x,y=my,size=ps+1,col=ps))+
 
-      scale_color_gradient(low = '#00AFBB', high ='#FC4E07',guide='none' )+
+     # scale_color_gradient(low = '#00AFBB', high ='#FC4E07',guide='none' )+
 
-      scale_fill_gradient( high= "#CC79A7", low ="#56B4E9" ,guide='none')+
+      scale_fill_gradient( high= "blue", low ="red" ,guide='none')+
       guides( size = FALSE)+
       ylab("Level of resolution")+
       xlab("Base pair position")+

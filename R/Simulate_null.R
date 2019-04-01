@@ -26,14 +26,7 @@ Simu_null <- function(Y,confounder,lev_res,emp_cov,size,sigma_b,print=TRUE)
     #x.rank = rank(x, ties.method="average")
     return(qqnorm(x.rank,plot.it = F)$x)
   }
-
   # INPUT CHECKS
-
-  if(missing(emp_cov)&missing(Y))
-  {
-    stop("Error: Provide the empirical covaraince matrix or the pehnotype")
-
-  }
   print("Input dimensions:")
   if(!is.numeric(Y) || length(Y)==0){
     stop("ERROR: Y is not a numeric vector")
@@ -72,8 +65,17 @@ Simu_null <- function(Y,confounder,lev_res,emp_cov,size,sigma_b,print=TRUE)
 
 
   sigma_b <- sigma_b
-  resM <- (1/sigma_b/sigma_b)*solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2]))
-  null_sd <-as.numeric(resM["Y","Y"])^2
+  beta_0 <- c()
+  for( i in 1:1000)
+  {
+    y <- rnorm(length(Y),sd=1)
+    temp <- solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2])) %*% t(Dmat)%*% y
+    beta_0 <- c(beta_0,temp[2])
+
+  }
+
+
+  null_sd <-var(beta_0)
 
   ##################################
   #Computing proxy covariance matrix

@@ -48,7 +48,7 @@
 #'
 #'
 #'genotype <-  matrix(my_functions[my_bp,2 ], ncol=1 ) %*%t(matrix(type_fn,ncol=1))
-#'genotype <- genotype+ rnorm(dim(genotype)[1]*dim(genotype)[2])
+#'genotype <- genotype+ rnorm(dim(genotype)[1]*dim(genotype)[2],sd=0.1)
 #'#dim(genotype)= nSNP, nind
 #'
 #'###############################################################
@@ -134,19 +134,7 @@
 Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",para=FALSE,BF=FALSE)
 {
 
-  #Quantile transform to prevent for non normaliy distrib WCs
-  Quantile_transform  <- function(x)
-  {
-    .ex.seed <- exists(".Random.seed")
-    if(.ex.seed) .oldseed <- .Random.seed
-    set.seed(666)
-    if(.ex.seed) on.exit(.Random.seed <<- .oldseed)
 
-
-    x.rank = rank(x, ties.method="random")
-    #x.rank = rank(x, ties.method="average")
-    return(qqnorm(x.rank,plot.it = F)$x)
-  }
 
   #To ensure the length not to be 0
   Y <- as.vector(Y)
@@ -158,48 +146,48 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   if(!is.numeric(Y) || length(Y)==0){
     stop("ERROR: Y is not a numeric vector")
   } else {
-  	print(sprintf("%i phenotypes detected", length(Y)))
-  	if(all(Y %in% c(0,1))){
-  		print("Binary phenotype detected")
-  	} else if(!is.vector(Y)){
-  		stop("ERROR: Y is not a vector. Multi-phenotype analysis not implemented yet.")
-  	} else {
-  		print("Continuous phenotype detected")
-  	}
+    print(sprintf("%i phenotypes detected", length(Y)))
+    if(all(Y %in% c(0,1))){
+      print("Binary phenotype detected")
+    } else if(!is.vector(Y)){
+      stop("ERROR: Y is not a vector. Multi-phenotype analysis not implemented yet.")
+    } else {
+      print("Continuous phenotype detected")
+    }
   }
   if(missing(BF)) {
     BF <- FALSE
   }
   # Writing the design matrix
   if(missing(confounder)) {
-  	print("no covariates provided, using intercept only")
-  	confounder <- data.frame(confounding=rep(1,length(Y)) )
+    print("no covariates provided, using intercept only")
+    confounder <- data.frame(confounding=rep(1,length(Y)) )
   } else if(nrow(confounder)!=length(Y)) {
-  	stop("ERROR: number of samples in Y and confounder does not match")
+    stop("ERROR: number of samples in Y and confounder does not match")
   } else {
-  	print(sprintf("%i covariates for %i samples detected", ncol(confounder), nrow(confounder)))
-	  confounder <- cbind(rep(1,length(Y)),confounder)
+    print(sprintf("%i covariates for %i samples detected", ncol(confounder), nrow(confounder)))
+    confounder <- cbind(rep(1,length(Y)),confounder)
   }
 
 
   # Check genotype matrix
   if(is.data.frame(loci)){
-  	print("Converting genotype data to matrix")
-  	loci <- as.matrix(loci)
+    print("Converting genotype data to matrix")
+    loci <- as.matrix(loci)
   }
   if(missing(loci) || !is.numeric(loci)){
-  	stop("ERROR: genotype matrix missing or not numeric")
+    stop("ERROR: genotype matrix missing or not numeric")
   } else if(ncol(loci)!=length(Y)){
-  	stop("ERROR: number of samples in Y and loci does not match")
+    stop("ERROR: number of samples in Y and loci does not match")
   } else {
-  	print(sprintf("%i SNPs for %i samples detected", nrow(loci), ncol(loci)))
+    print(sprintf("%i SNPs for %i samples detected", nrow(loci), ncol(loci)))
   }
 
   # Check position vector
   if(!is.numeric(bp) || !is.vector(bp)){
-  	stop("ERROR: must provide numeric position vector")
+    stop("ERROR: must provide numeric position vector")
   } else {
-  	print(sprintf("positions for %i SNPs read", length(bp)))
+    print(sprintf("positions for %i SNPs read", length(bp)))
   }
 
   # Clean missing samples from all inputs
@@ -208,8 +196,8 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   keepGT <- complete.cases(t(loci))
   nonmissing_index <- which(keepGT & keepY & keepC)
   if(length(nonmissing_index) != length(Y)){
-  	print(sprintf("Warning: %i individuals will be removed due to missingness",
-  			length(Y) - length(nonmissing_index)))
+    print(sprintf("Warning: %i individuals will be removed due to missingness",
+                  length(Y) - length(nonmissing_index)))
   }
 
   Y <- Y[nonmissing_index]
@@ -217,11 +205,11 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   loci <- loci[,nonmissing_index]
 
   print(paste("N individuals analysed = ", dim(loci)[2],
-  			", N SNPs analysed = ",dim(loci)[1]))
+              ", N SNPs analysed = ",dim(loci)[1]))
 
   # workaround for git issue #1 - mysteriously empty slices
   if(is.null(dim(loci)) || dim(loci)[1] < 2^lev_res || dim(loci)[2] < 2){
-  	print("Warning: not enough genotypes remaining, returning empty output")
+    print("Warning: not enough genotypes remaining, returning empty output")
 
     # Naming the output
     names_Betas <- c("Beta_0_0")
@@ -252,10 +240,10 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   #Quantile transform to prevent for non normaliy distrib WCs
   Quantile_transform  <- function(x)
   {
-    .ex.seed <- exists(".Random.seed")
-    if(.ex.seed) .oldseed <- .Random.seed
-    set.seed(665)
-    if(.ex.seed) on.exit(.Random.seed <<- .oldseed)
+    #.ex.seed <- exists(".Random.seed")
+    #if(.ex.seed) .oldseed <- .Random.seed
+    set.seed(1)
+    #if(.ex.seed) on.exit(.Random.seed <<- .oldseed)
 
 
     x.rank = rank(x, ties.method="random")
@@ -350,7 +338,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
         p1 <- temp[j,1]
         p2 <- temp[j,2]
         ind <- c(ind, p1:p2 )
-       }
+      }
       porth[gi+1] <-  mean(pos.prob[ind])
 
     }
@@ -388,17 +376,17 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
     class(LDIRWD) <- "wd"
     #Thresholding here
     LDIRWD <- threshold(LDIRWD,policy = "universal",type="hard",
-    				   dev = madmad,levels = 1:(LDIRWD$nlevels-1))
+                        dev = madmad,levels = 1:(LDIRWD$nlevels-1))
 
     res <- c()
     for(i in 0: lev_res){
-      	if(coeftype == "d"){
-        		res <- c(res, accessD( LDIRWD,lev = i) )
-    	} else if (coeftype == "c") {
-		        res <- c(res, accessC( LDIRWD,lev = i) )
-    	} else {
-    		stop(paste("ERROR: coeftype", coeftype, "not recognized"))
-    	}
+      if(coeftype == "d"){
+        res <- c(res, accessD( LDIRWD,lev = i) )
+      } else if (coeftype == "c") {
+        res <- c(res, accessC( LDIRWD,lev = i) )
+      } else {
+        stop(paste("ERROR: coeftype", coeftype, "not recognized"))
+      }
     }
 
     return(res)
@@ -487,9 +475,16 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
 
   Dmat <- cbind(confounder,Y)
   Dmat <- as.matrix(Dmat)
-  resM <- (1/sigma_b/sigma_b)*solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2]))
+  beta_0 <- c()
+  for( i in 1:100)
+  {
+    y <- rnorm(length(Y),sd=1)
+    temp <- solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2])) %*% t(Dmat)%*% y
+    beta_0 <- c(beta_0,temp[2])
+
+  }
   #Starting position for the EM
-  null_sd <-sqrt(as.numeric(resM["Y","Y"]))
+  null_sd <-sd(beta_0)
   alt_sd <- sigma_b
   #Shrinkage coefficient for the EM
   alp <-  1/sqrt(2*log(length(Y)))
@@ -512,21 +507,21 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   #Naming the output
   if(BF ==FALSE)
   {
-   names_Betas <- c("Beta_0_0")
-   names_postH1 <-  c("Pi_0_0")
-   for(i in 1:lev_res)
-   {
-     for (j in 1:(2^i))
-     {
-       names_Betas <- c(names_Betas,paste("Beta",i,j,sep = "_"))
-       names_postH1 <- c(names_postH1,paste("Pi",i,j,sep = "_"))
-     }
-   }
+    names_Betas <- c("Beta_0_0")
+    names_postH1 <-  c("Pi_0_0")
+    for(i in 1:lev_res)
+    {
+      for (j in 1:(2^i))
+      {
+        names_Betas <- c(names_Betas,paste("Beta",i,j,sep = "_"))
+        names_postH1 <- c(names_postH1,paste("Pi",i,j,sep = "_"))
+      }
+    }
 
-   names(out) <- c("L_h",
-                   "min_ph_pv",
-                   names_Betas,
-                   names_postH1)
+    names(out) <- c("L_h",
+                    "min_ph_pv",
+                    names_Betas,
+                    names_postH1)
   }
   else
   {
