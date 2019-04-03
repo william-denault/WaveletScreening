@@ -25,6 +25,8 @@ Simu_null_emp <- function(emp_cov,smp_size,lev_res,size,sigma_b,print=TRUE)
   }
 
 
+  alp <- 1/sqrt(2*log(size))
+
 
 
   max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {
