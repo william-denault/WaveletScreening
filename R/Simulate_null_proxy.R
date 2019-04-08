@@ -122,7 +122,6 @@ Simu_null_proxy <- function(Y,confounder,lev_res,size,sigma_b,print=TRUE)
 
 
 
-
   max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {
     niter = 100
     epsilon <- 10^-4
@@ -165,7 +164,7 @@ Simu_null_proxy <- function(Y,confounder,lev_res,size,sigma_b,print=TRUE)
       new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
       #Check end
       new.log.lik<- sum(log(p.hat*dnorm( betasub ,m1.hat,sigma1.hat)+(1-p.hat)*dnorm( betasub ,m0.hat,sigma0.hat)))
-      #epsilon <- abs( new.log.lik -old.log.lik)
+      epsilon <- abs( new.log.lik -old.log.lik)
       iter<-iter+1
 
     }
