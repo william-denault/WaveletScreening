@@ -19,7 +19,7 @@ max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {
   betasub = my_betas
   m0.hat<-0
   m1.hat<-0
-  sigma0.hat<-null_sd
+  sigma0.hat<- null_sd
   sigma1.hat<-alt_sd
   #Prevent from label swapping
   if(sigma1.hat < sigma0.hat){
@@ -39,21 +39,20 @@ max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {
     temp<-p.hat*dnorm( betasub ,m1.hat,sigma1.hat)/(p.hat*dnorm( betasub ,m1.hat,sigma1.hat)+(1-p.hat)*dnorm( betasub ,m0.hat,sigma0.hat))
     #Update parameter
     p.hat<-mean(temp)
-    #adding slight bias in case of non identifiable mixture
     m1.hat<-sum(temp* betasub)/(sum(temp)+eps)
     m0.hat<-sum((1-temp)* betasub)/(sum(1-temp)+eps)
     sigma1.hat<-sqrt( sum(temp*( betasub-m1.hat)^2)/(sum(temp)+eps) )+alt_sd
     sigma0.hat<-sqrt( sum((1-temp)*( betasub-m0.hat)^2)/(sum(1-temp)+eps) )
     #limit the decrease of sigma0.hat in case of non identifiable mixture
-    if(sigma0.hat < 0.01*null_sd ){
-      sigma0.hat <- 0.01*null_sd
+    if(sigma0.hat < 0.1*null_sd ){
+      sigma0.hat <- 0.1*null_sd
     }
     new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
     #Check end
     new.log.lik<- sum(log(p.hat*dnorm( betasub ,m1.hat,sigma1.hat)+(1-p.hat)*dnorm( betasub ,m0.hat,sigma0.hat)))
-    #epsilon <- abs( new.log.lik -old.log.lik)
+    epsilon <- abs( new.log.lik -old.log.lik)
     iter<-iter+1
-    print(iter)
+
   }
 
   #Proba Belong belong to the alternative:
@@ -79,7 +78,6 @@ max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {
     p_vec[(gi+1)]    <-  mean(pos.prob[(2^gi):(2^(gi + 1) - 1)])
     lambcom[(gi+1)]  <-  mean(pos.prob[(2^gi):(2^(gi + 1) - 1)]*dnorm( betasub[(2^gi):(2^(gi + 1) - 1)] ,m1.hat,sigma1.hat)-(1-pos.prob[(2^gi):(2^(gi + 1) - 1)])*dnorm( betasub[(2^gi):(2^(gi + 1) - 1)] ,m0.hat,sigma0.hat))
   }
-
   porth   <- rep(NA,(lev_res))
   start <- 2^(1:lev_res)
   end  <-2^((1+1):(lev_res+1))-1
@@ -98,9 +96,14 @@ max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {
     porth[gi+1] <-  mean(pos.prob[ind])
 
   }
+
+  #Preparing the output
   ph <- sum(p_vec)
   pv <- sum(porth)
   min_ph_pv <- min( ph,pv)
   L_h <- sum(lambcom)
-  return(c(L_h, min_ph_pv))
+  out <- list()
+  out[[1]] <- c(L_h, min_ph_pv)
+  out[[2]] <- pos.prob
+  return( out)
 }
