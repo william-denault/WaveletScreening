@@ -130,33 +130,35 @@ Simu_null_emp <- function(emp_cov,smp_size,lev_res,size,sigma_b,print=TRUE)
   alp <- 1/sqrt(2*log(smp_size))
   print("Simulation of test statistics")
   temp <- seq(from=1,to=size,by=size/10)[-1]-1
+  out <- list()
+  my_f <- function(y)
+  {
+    pis <- max_EM_post_Beta(y, lev_res = 9, null_sd = null_sd ,alt_sd = alt_sd,alp=alp)
+    return(pis)
+  }
   if(print==TRUE)
   {
-    for (j in (length(Pi_nt)+1):size)
-    {
-      y <- rmvnorm(1,mean=rep(0,nbeta),sigma =emp_cov )
-      pis <- max_EM_post_Beta(y, lev_res = lev_res, null_sd = null_sd,alt_sd = alt_sd,alp = alp)
-      Pi_nt[[j]] <-pis
-      if(j %in% temp )
-      {
-        print(paste(j, "simulations performed"))
-      }
 
+    for (i in 1:10)
+    {
+      y <- rmvnorm(floor(size/10),mean=rep(0,nbeta),sigma =emp_cov )
+      out[[i]] <-t( apply(y1,1,my_f))
+      print(paste(i*floor(size/10), "simulations performed"))
     }
+
   }
   if(print==FALSE)
   {
-    for (j in (length(Pi_nt)+1):size)
+    for (i in 1:10)
     {
-      y <- rmvnorm(1,mean=rep(0,nbeta),sigma =emp_cov )
-      pis <- max_EM_post_Beta(y, lev_res = lev_res, null_sd = null_sd,alt_sd = alt_sd,alp = alp)
-      Pi_nt[[j]] <-pis
+      y <- rmvnorm(floor(size/10),mean=rep(0,nbeta),sigma =emp_cov )
+      out[[i]] <-t( apply(y1,1,my_f))
     }
   }
 
 
 
-  out <- do.call(rbind,Pi_nt)
+  out <- do.call(rbind,out)
   colnames(out) <- c("L_h","min_ph_pv")
   return(out)
 }
