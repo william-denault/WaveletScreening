@@ -57,7 +57,7 @@ plot_WS <- function(res,bp,lev_res,fill,dg)
   #############
   disp <- c(point_size,point_size)
 
-
+  point_size[which(prt== 0 )]<-0
   df <- data.frame(x=x,y=y,levres=levres, ps =point_size)
 
 
@@ -77,7 +77,7 @@ plot_WS <- function(res,bp,lev_res,fill,dg)
 
   mx <- c(x,x)
   mycol <- c(df$levres,df$levres)
-  ps <-c(point_size ,point_size )
+  ps <-abs(c(point_size ,point_size ))
   df_fill <- data.frame(xfil=xfil ,y=my,group=gl,col =mycol,x=mx, ps =abs(ps))
   if(fill==TRUE)
   {
@@ -86,10 +86,10 @@ plot_WS <- function(res,bp,lev_res,fill,dg)
       geom_area(position="identity")+
       geom_point(aes(x=x,y=my,size=ps+1,col=ps))+
 
-     # scale_color_gradient(low = '#00AFBB', high ='#FC4E07',guide='none' )+
+      scale_color_gradient(low = 'grey80', high ='grey20',guide='none' )+
 
       scale_fill_gradient( high= "blue", low ="red" ,guide='none')+
-      guides( size = FALSE)+
+      guides( size = FALSE,col=FALSE)+
       ylab("Level of resolution")+
       xlab("Base pair position")+
       scale_y_continuous(breaks=unique(df_fill$y ), labels =0:lev_res)+
@@ -101,8 +101,9 @@ plot_WS <- function(res,bp,lev_res,fill,dg)
   if(fill==FALSE)
   {
     P1 <-     ggplot(df_fill, aes(x=x,y=my,size=abs(ps)))+
-      guides( size = FALSE)+
-      geom_point()+
+      guides( size = FALSE,col=FALSE)+
+      geom_point(aes(x=x,y=my,size=ps+1,col=ps))+
+      scale_color_gradient(low = 'grey80', high ='grey20',guide='none' )+
       scale_y_continuous(breaks=unique(df_fill$y ), labels =0:lev_res)+
       scale_x_continuous(breaks=seq(0,1 ,by=0.125), labels =seq(min(bp),max(bp),length.out = 9))+
       theme_bw()
