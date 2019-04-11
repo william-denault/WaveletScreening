@@ -238,7 +238,7 @@ Simu_null_proxy <- function(Y,confounder,lev_res,size,sigma_b,print=TRUE)
     for (i in 1:10)
     {
       y <- rmvnorm(floor(size/10),mean=rep(0,nbeta),sigma =emp_cov )
-      out[[i]] <-t( apply(y1,1,my_f))
+      out[[i]] <-t( apply(y,1,my_f))
       print(paste(i*floor(size/10), "simulations performed"))
     }
 
@@ -248,7 +248,7 @@ Simu_null_proxy <- function(Y,confounder,lev_res,size,sigma_b,print=TRUE)
     for (i in 1:10)
     {
       y <- rmvnorm(floor(size/10),mean=rep(0,nbeta),sigma =emp_cov )
-      out[[i]] <-t( apply(y1,1,my_f))
+      out[[i]] <-t( apply(y,1,my_f))
     }
   }
 
