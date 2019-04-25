@@ -111,13 +111,13 @@ Search_lambda <- function(Sim,plot=FALSE)
     muv <- median(t1,na.rm = TRUE)
     sdv <- mad(t1,na.rm = TRUE)
     h <- hist(1-pnorm(t1,mean=muv,sd=sdv),nclass= n_class,
-              main=c("Histogramm of null p-values using L_h"),xlab = "p value",xlim = c(0,0.1))
+              main=c("Histogram of null p-values using L_h"),xlab = "p value",xlim = c(0,0.1))
     pen <- j
     t1 <- lh+pen*(mph_pv)
     muv <- median(t1,na.rm = TRUE)
     sdv <- mad(t1,na.rm = TRUE)
     h <- hist(1-pnorm(t1,mean=muv,sd=sdv),nclass= n_class,
-              main=paste("Histogramm of null p-values using T_",j),xlab = "p value",xlim = c(0,0.1))
+              main=paste("Histogram of null p-values using T_",j),xlab = "p value",xlim = c(0,0.1))
     par(mfrow=c(1,1))
   }
 

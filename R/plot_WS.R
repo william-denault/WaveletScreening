@@ -57,7 +57,7 @@ plot_WS <- function(res,bp,lev_res,fill,dg)
   #############
   disp <- c(point_size,point_size)
 
-  point_size[which(prt== 0 )]<-0
+  point_size<-res[grep("Beta",sel)]
   df <- data.frame(x=x,y=y,levres=levres, ps =point_size)
 
 
@@ -78,17 +78,26 @@ plot_WS <- function(res,bp,lev_res,fill,dg)
   mx <- c(x,x)
   mycol <- c(df$levres,df$levres)
   ps <-abs(c(point_size ,point_size ))
+  ps2 <- c(point_size ,point_size )
   df_fill <- data.frame(xfil=xfil ,y=my,group=gl,col =mycol,x=mx, ps =abs(ps))
+
+  lim <- c( min(-max(point_size),min(point_size)),
+            max(max(point_size),-min(point_size)))
+  lim
+
+
   if(fill==TRUE)
   {
 
     P1 <- ggplot(df_fill, aes(x=xfil,y=y, group=group,fill=col))+
       geom_area(position="identity")+
-      geom_point(aes(x=x,y=my,size=ps+1,col=ps))+
+      geom_point(aes(x=x,y=my,size=ps+1,col=ps2))+
 
-      scale_color_gradient(low = 'grey80', high ='grey20',guide='none' )+
+      #scale_color_gradient(low = 'grey80', high ='grey20',guide='none' )+
+      scale_color_gradient2(low = 'blue', high ='red', mid="white",guide='none',limits=lim )+
 
-      scale_fill_gradient( high= "blue", low ="red" ,guide='none')+
+
+      scale_fill_gradient( high= "green", low = "purple" ,guide='none')+
       guides( size = FALSE,col=FALSE)+
       ylab("Level of resolution")+
       xlab("Base pair position")+
@@ -113,3 +122,5 @@ plot_WS <- function(res,bp,lev_res,fill,dg)
   return(P1)
 
 }
+
+
