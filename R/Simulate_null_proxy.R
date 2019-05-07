@@ -13,6 +13,7 @@
 #'}
 Simu_null_proxy <- function(Y,confounder,lev_res,size,sigma_b,print=TRUE)
 {
+  smp_size= length(Y)
   Quantile_transform  <- function(x)
   {
     .ex.seed <- exists(".Random.seed")
