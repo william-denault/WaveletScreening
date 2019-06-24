@@ -26,7 +26,7 @@ max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {
     sigma1.hat <- 3*sigma0.hat+sigma1.hat
   }
 
-  p.hat<-0.5
+  p.hat<-0.25
   new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
   erreur<-1+epsilon
   iter <- 1
@@ -40,7 +40,7 @@ max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {
     #Update parameter
     p.hat<-mean(temp)
     m1.hat<-sum(temp* betasub)/(sum(temp)+eps)
-    m0.hat<-sum((1-temp)* betasub)/(sum(1-temp)+eps)
+    #m0.hat<-sum((1-temp)* betasub)/(sum(1-temp)+eps)
     sigma1.hat<-sqrt( sum(temp*( betasub-m1.hat)^2)/(sum(temp)+eps) )+alt_sd
     sigma0.hat<-sqrt( sum((1-temp)*( betasub-m0.hat)^2)/(sum(1-temp)+eps) )
     #limit the decrease of sigma0.hat in case of non identifiable mixture

@@ -242,7 +242,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   {
     #.ex.seed <- exists(".Random.seed")
     #if(.ex.seed) .oldseed <- .Random.seed
-    set.seed(1)
+    #set.seed(1)
     #if(.ex.seed) on.exit(.Random.seed <<- .oldseed)
 
 
@@ -262,16 +262,16 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
     eps <-10^-10#slight correction in case of non identifiable mixture
     #prevent from having division by 0 in update parameter sum(temp)
     betasub = my_betas
-    m0.hat<-0
-    m1.hat<-0
-    sigma0.hat<- null_sd
-    sigma1.hat<-alt_sd
+    m0.hat <- 0
+    m1.hat <- 0
+    sigma0.hat <- null_sd
+    sigma1.hat <-alt_sd
     #Prevent from label swapping
     if(sigma1.hat < sigma0.hat){
       sigma1.hat <- 3*sigma0.hat+sigma1.hat
     }
 
-    p.hat<-0.5
+    p.hat<-0.25
     new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
     erreur<-1+epsilon
     iter <- 1
@@ -285,7 +285,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
       #Update parameter
       p.hat<-mean(temp)
       m1.hat<-sum(temp* betasub)/(sum(temp)+eps)
-      m0.hat<-sum((1-temp)* betasub)/(sum(1-temp)+eps)
+      #m0.hat<-sum((1-temp)* betasub)/(sum(1-temp)+eps)
       sigma1.hat<-sqrt( sum(temp*( betasub-m1.hat)^2)/(sum(temp)+eps) )+alt_sd
       sigma0.hat<-sqrt( sum((1-temp)*( betasub-m0.hat)^2)/(sum(1-temp)+eps) )
       #limit the decrease of sigma0.hat in case of non identifiable mixture
@@ -474,17 +474,9 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
 
   Dmat <- cbind(confounder,Y)
   Dmat <- as.matrix(Dmat)
-  beta_0 <- c()
-  for( i in 1:500)
-  {
-    y <- rnorm(length(Y),sd=1)
-    temp <- solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2])) %*% t(Dmat)%*% y
-    beta_0 <- c(beta_0,temp[2])
 
-  }
-  #Starting position for the EM
-  null_sd <-sd(beta_0)
-  alt_sd <- sigma_b
+  null_sd <- sqrt(solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2]))["Y","Y"])
+  alt_sd <- 100*null_sd
   #Shrinkage coefficient for the EM
   alp <-  1/sqrt(2*log(length(Y)))
   my_betas <- as.numeric(my_betas)

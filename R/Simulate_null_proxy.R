@@ -16,11 +16,6 @@ Simu_null_proxy <- function(Y,confounder,lev_res,size,sigma_b,print=TRUE)
   smp_size= length(Y)
   Quantile_transform  <- function(x)
   {
-    .ex.seed <- exists(".Random.seed")
-    if(.ex.seed) .oldseed <- .Random.seed
-    set.seed(666)
-    if(.ex.seed) on.exit(.Random.seed <<- .oldseed)
-
 
     x.rank = rank(x, ties.method="random")
     #x.rank = rank(x, ties.method="average")
@@ -54,28 +49,27 @@ Simu_null_proxy <- function(Y,confounder,lev_res,size,sigma_b,print=TRUE)
     Dmat <- cbind(rep(1,length(Y)),Y)
     Dmat <- as.matrix(Dmat)
   }
-  else if(nrow(confounder)!=length(Y)) {
-    stop("ERROR: number of samples in Y and confounder does not match")
-  } else {
-    print(sprintf("%i covariates for %i samples detected", ncol(confounder), nrow(confounder)))
-    confounder <- cbind(rep(1,length(Y)),confounder)
-    Dmat <- cbind(confounder,Y)
-    Dmat <- as.matrix(Dmat)
+  else
+  {
+    if(nrow(confounder)!=length(Y)) {
+      stop("ERROR: number of samples in Y and confounder does not match")
+    } else {
+      print(sprintf("%i covariates for %i samples detected", ncol(confounder), nrow(confounder)))
+      confounder <- cbind(rep(1,length(Y)),confounder)
+      Dmat <- cbind(confounder,Y)
+      Dmat <- as.matrix(Dmat)
+    }
+
   }
+
 
 
   sigma_b <- sigma_b
-  beta_0 <- c()
-  for( i in 1:1000)
-  {
-    y <- rnorm(length(Y),sd=1)
-    temp <- solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2])) %*% t(Dmat)%*% y
-    beta_0 <- c(beta_0,temp[2])
 
-  }
+  Dmat <- as.matrix(Dmat)
 
+  null_sd <- sqrt(solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2]))["Y","Y"])
 
-  null_sd <-var(beta_0)
 
   ##################################
   #Computing proxy covariance matrix
@@ -117,7 +111,7 @@ Simu_null_proxy <- function(Y,confounder,lev_res,size,sigma_b,print=TRUE)
   Gen_W_trans <- apply(loci,2,my_wavproc)
   Gen_W_trans = apply(Gen_W_trans, 1, Quantile_transform)
   #Compute proxy for empirical covariance matrix
-  emp_cov <- (cov(Gen_W_trans))*null_sd
+  emp_cov <- (cov(Gen_W_trans))*(null_sd^2)
   print("Proxy Covariance computed")
 
 
@@ -134,14 +128,14 @@ Simu_null_proxy <- function(Y,confounder,lev_res,size,sigma_b,print=TRUE)
     betasub = my_betas
     m0.hat<-0
     m1.hat<-0
-    sigma0.hat<-sqrt(null_sd)
-    sigma1.hat<-alt_sd
+    sigma0.hat<- null_sd
+    sigma1.hat<- alt_sd
     #Prevent from label swapping
     if(sigma1.hat < sigma0.hat){
       sigma1.hat <- 3*sigma0.hat+sigma1.hat
     }
 
-    p.hat<-0.5
+    p.hat<-0.25
     new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
     erreur<-1+epsilon
     iter <- 1
@@ -155,12 +149,12 @@ Simu_null_proxy <- function(Y,confounder,lev_res,size,sigma_b,print=TRUE)
       #Update parameter
       p.hat<-mean(temp)
       m1.hat<-sum(temp* betasub)/(sum(temp)+eps)
-      m0.hat<-sum((1-temp)* betasub)/(sum(1-temp)+eps)
+      #m0.hat<-sum((1-temp)* betasub)/(sum(1-temp)+eps)
       sigma1.hat<-sqrt( sum(temp*( betasub-m1.hat)^2)/(sum(temp)+eps) )+alt_sd
       sigma0.hat<-sqrt( sum((1-temp)*( betasub-m0.hat)^2)/(sum(1-temp)+eps) )
       #limit the decrease of sigma0.hat in case of non identifiable mixture
-      if(sigma0.hat < 0.1*sqrt(null_sd) ){
-        sigma0.hat <- 0.1*sqrt(null_sd)
+      if(sigma0.hat < 0.1*null_sd ){
+        sigma0.hat <- 0.1*null_sd
       }
       new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
       #Check end
@@ -193,7 +187,6 @@ Simu_null_proxy <- function(Y,confounder,lev_res,size,sigma_b,print=TRUE)
       p_vec[(gi+1)]    <-  mean(pos.prob[(2^gi):(2^(gi + 1) - 1)])
       lambcom[(gi+1)]  <-  mean(pos.prob[(2^gi):(2^(gi + 1) - 1)]*dnorm( betasub[(2^gi):(2^(gi + 1) - 1)] ,m1.hat,sigma1.hat)-(1-pos.prob[(2^gi):(2^(gi + 1) - 1)])*dnorm( betasub[(2^gi):(2^(gi + 1) - 1)] ,m0.hat,sigma0.hat))
     }
-
     porth   <- rep(NA,(lev_res))
     start <- 2^(1:lev_res)
     end  <-2^((1+1):(lev_res+1))-1
@@ -207,11 +200,12 @@ Simu_null_proxy <- function(Y,confounder,lev_res,size,sigma_b,print=TRUE)
         temp <- cbind(tempstart,tempend)
         p1 <- temp[j,1]
         p2 <- temp[j,2]
-        ind <- c(p1:p2 )
+        ind <- c(ind, p1:p2 )
       }
       porth[gi+1] <-  mean(pos.prob[ind])
 
     }
+
     ph <- sum(p_vec)
     pv <- sum(porth)
     min_ph_pv <- min( ph,pv)
@@ -221,16 +215,16 @@ Simu_null_proxy <- function(Y,confounder,lev_res,size,sigma_b,print=TRUE)
   ######################
   #Set up for simulation
   ######################
-  null_sd <- mean(diag(emp_cov))
+
   Pi_nt <- list()
-  alt_sd <- sigma_b
+  alt_sd <- 100*null_sd
   alp <- 1/sqrt(2*log(smp_size))
   print("Simulation of test statistics")
   temp <- seq(from=1,to=size,by=size/10)[-1]-1
   out <- list()
   my_f <- function(y)
   {
-    pis <- max_EM_post_Beta(y, lev_res = 9, null_sd = null_sd ,alt_sd = alt_sd,alp=alp)
+    pis <- max_EM_post_Beta(y, lev_res = lev_res , null_sd = null_sd ,alt_sd = alt_sd,alp=alp)
     return(pis)
   }
   if(print==TRUE)
