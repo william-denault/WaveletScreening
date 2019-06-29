@@ -16,7 +16,7 @@
 #'@examples \dontrun{
 #'
 #'
-#'set.seed(666)
+#'set.seed(1)
 #'#########################################
 #'#Generate a randomly sample loci size=1Mb
 #'#########################################
