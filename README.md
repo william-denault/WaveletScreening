@@ -25,7 +25,7 @@ Soon on CRAN
 See help from Wavelet_screaming
 
 ### Generating fake data:
-
+Here a dummy exemple
 ```{r , echo=FALSE}
 #########################################
 #Generate a randomly sample loci size=1Mb
@@ -79,44 +79,53 @@ You can specify the wavelet coefficients that you want to use. From our experien
 ```{r , echo=FALSE}
 res <- Wavelet_screaming( Y,loci=genotype,bp=my_bp,
                          lev_res=6,sigma_b = 0.2)
-# or:
-genotype_df <- as.data.frame(genotype)
-res <- Wavelet_screaming( Y,loci=genotype_df,bp=my_bp,coeftype="c",
-                         lev_res=6,sigma_b = 0.2)
+
 ```
 
 
 
 ### Assessing the significance
 
-The test statistics of the Wavelet Screaming method relly of the distribution of the computed Bayes factors use during the computation. The Bayes factors distribution depend on two parameters, however if the sample size (individuals) is big enough one of this parameter, can be set as zero safely. So the Bayes factors depend only on one parameter that can be computed as follow:
+The test statistics of the Wavelet Screaming method relly on a combination of two statistics. The first one L_h is the basis for the test and the second one is used as a penalization.
 
-(it takes 2-3 minutes)
+(it takes 5-7 minutes)
 ```{r , echo=FALSE}
-lambda <- get_lambda1(Y,sigma_b = 0.2)
+Sim <- Simu_null(Y,lev_res = 6,sigma_b = 0.2,size=100000)
+
+```
+####Calibration of the hyperparameter
+```{r , echo=FALSE}
+lambda <- Search_lambda(Sim,plot=TRUE)
+
 ```
 
 
-We then simulate the null distribution of the test statistics depending of the parameter lambda and the Wavelet Screaming settings:
+
+#### Pvalue 
+
+We use the simulated observations of the null distribution and the penalty parameter to fit an normal distribution.  We then use this fitted distribution to estimated the associated quantile of the observation and so the  p-value.
 ```{r , echo=FALSE}
-Sim_gam <- Simu_Lambda_null(nsimu=10000, lambda=lambda,lev_res = 6)
-```
-
-
-#### Pvalue estimation
-
-We use the simulated observations of the null distribution to fit an Generalized Pareto Distribution that correctly approximate the high quantile of the null distribution of the test statistics.  We then use this fitted distribution to estimated the associated quantile of the observation and so the  p-value.
-```{r , echo=FALSE}
-#Should be preferred for smaller values of Lambda
-library(fExtremes)
-x <-  Sim_gam
-#Selecting the threshold
-thresh <- min(  max (c( 2.5*mean( Sim_Gamma) , quantile(Sim_Gamma,0.98)) ), quantile(Sim_Gamma,0.97))
-z = gpdFit(x, u = thresh , type = "mle")
-z
-pval <- 1-fExtremes::pgpd(q=res["Lambda"], xi=z@fit$par.ests["xi"],
-                          mu=z@parameter$u, beta=z@fit$par.ests["beta"])
+Th <- Sim[,c("L_h")]+lambda*Sim[,c("min_ph_pv")]
+mu <- median(Th,na.rm = TRUE)
+sdv <- mad(Th,na.rm = TRUE)
+####################################
+#Test Value of the loci to be tested
+####################################
+th <-  res[c("L_h")]+lambda*res["min_ph_pv"]
+#######
+#Pvalue
+#######
+pval <- 1-pnorm(th,mean=muv,sd=sdv)
 pval
+df <- data.frame(Th = Th,type = factor( c(rep("Null",length(Th)))) )
+ggplot(df,aes(Th,fill=type))+
+  xlim(c(min(c(Th,th)),max(Th,th)))+
+  geom_density()+
+  guides(fill=FALSE)+
+  geom_point(aes(x=th, y=0), colour="red")+theme(legend.position="none")+
+  geom_text(label="Value of the test statistics", x=th, y=0.001)+
+  geom_text(label="Null distribution", x=mean(Th), y=0.001)+
+  theme_bw()
 ```
 
 ### Visualisation

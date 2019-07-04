@@ -7,7 +7,7 @@
 fine_map(res, lev_res, thresh, start, end, chr)
 }
 \arguments{
-\item{res}{number of simulation to perform.}
+\item{res}{Output of Wavelet_screaming, without Betas.}
 
 \item{lev_res}{the maximum level of resolution of the previous analysis.}
 

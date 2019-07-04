@@ -27,8 +27,7 @@ adaptative_Simu_Lambda_null <- function(nsimu,lambda,lev_res,ncp,sub,thresh)
   }
   if(length( which( as.numeric(sub)>thresh ) )==1 )
   {
-    print( "Only one Bayes Factor above the choosen threshold(set as one per deault), analytical formula available. Please use the function analytical_p")
-    break
+    stop( "Only one Bayes Factor above the choosen threshold(set as one per deault), analytical formula available. Please use the function analytical_p")
   }
 
 

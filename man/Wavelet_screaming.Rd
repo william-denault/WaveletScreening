@@ -5,7 +5,7 @@
 \title{Main function to perform wavelet screaming}
 \usage{
 Wavelet_screaming(Y, loci, bp, confounder, lev_res, sigma_b,
-  coeftype = "d", para = FALSE)
+  coeftype = "d", para = FALSE, BF = FALSE)
 }
 \arguments{
 \item{Y}{phenotype vector, has to be numeric. For case control code it as 0 and 1. Multiple label phenotype will be implemented in the next version}
@@ -18,11 +18,13 @@ Wavelet_screaming(Y, loci, bp, confounder, lev_res, sigma_b,
 
 \item{lev_res}{the maximum level of resolution needed}
 
-\item{sigma_b}{the parameter of the NIG prior used for the Bayes Factor computation. We advised to set this value between 0.1 and 0.2}
+\item{sigma_b}{the parameter of the NIG prior used for the betas computation. We advised to set this value between 0.1 and 0.2}
 
 \item{coeftype}{type of wavelet coefficient used for the screening. By default set as "d" difference, "c" can be used if you prefere to work in term of amount of variants instead in disrepency within sub loci.}
 
 \item{para}{logical parameter for parallelisation, if not specified set at FALSE.}
+
+\item{BF}{logical parameter for getting Bayes Factor of wavelet regression, if not specified set at FALSE.}
 }
 \value{
 A named vector. First position the estimated value of the Lambda statistics, then the proportion of association per level of resolution then the computed Bayes Factor per wavelet coefficient.
@@ -71,6 +73,7 @@ type_fn <-sample(0:2,replace = TRUE,size=n_size,  prob=  sampl_schem  )
 
 
 genotype <-  matrix(my_functions[my_bp,2 ], ncol=1 ) \%*\%t(matrix(type_fn,ncol=1))
+genotype <- genotype+ rnorm(dim(genotype)[1]*dim(genotype)[2],sd=0.1)
 #dim(genotype)= nSNP, nind
 
 ###############################################################
@@ -108,42 +111,41 @@ grid.arrange(P1,P2,ncol=2)
 ##################
 res <- Wavelet_screaming( Y,loci=genotype,bp=my_bp,
                          lev_res=6,sigma_b = 0.2)
-# or:
-genotype_df <- as.data.frame(genotype)
-res <- Wavelet_screaming( Y,loci=genotype_df,bp=my_bp,
-                         lev_res=6,sigma_b = 0.2)
-#value of the test statistic
-res["Lambda"]
+res
+#value of the test statistics
+res[c("L_h","min_ph_pv")]
 #############
 #Significance
 #############
 
-#Estimation of the Bayes factor lambda_1 distribution parameter
-#Take a bit of time
-lambda <- get_lambda1(Y,sigma_b = 0.2)
-#Simulation of the test statistics under the null distribution of
-# the Bayes factor
-Sim_gam <- Simu_Lambda_null(nsimu=10000, lambda=lambda,lev_res = 6)
-val <- res["Lambda"]
+#Simulate the null distribution using proxy covariance matrix
 
-#Via Simulation
+Sim <- Simu_null_proxy(Y,lev_res = 6,sigma_b = 0.2,size=10000)
+head(Sim)
+#Calibration of the hyperparameter
+lambda <- Search_lambda(Sim,plot=TRUE)
 
-pval <-c(length(Sim_gam[which(Sim_gam>val)])+1)/(length(Sim_gam)+1)
-pval
+Th <- Sim[,c("L_h")]+lambda*Sim[,c("min_ph_pv")]
+muv <- median(Th,na.rm = TRUE)
+sdv <- mad(Th,na.rm = TRUE)
+####################################
+#Test Value of the loci to be tested
+####################################
+th <-  res[c("L_h")]+lambda*res["min_ph_pv"]
+#######
+#Pvalue
+#######
+1-pnorm(th,mean=muv,sd=sdv)
 
-#Via EVT
-#Should be preferred for smaller values of Lambda
-
-library(fExtremes)
-x <-  Sim_gam
-#Selecting the threshold
-thresh <- min(  max (c( 2.5*mean( Sim_Gamma) , quantile(Sim_Gamma,0.98)) ), quantile(Sim_Gamma,0.97))
-z = gpdFit(x, u = thresh , type = "mle")
-z
-pval <- 1-fExtremes::pgpd(q=res["Lambda"], xi=z@fit$par.ests["xi"], mu=z@parameter$u, beta=z@fit$par.ests["beta"])
-pval
-
-
+df <- data.frame(Th = Th,type = factor( c(rep("Null",length(Th)))) )
+ggplot(df,aes(Th,fill=type))+
+ xlim(c(min(c(Th,th)),max(Th,th)))+
+ geom_density()+
+ guides(fill=FALSE)+
+ geom_point(aes(x=th, y=0), colour="red")+theme(legend.position="none")+
+ geom_text(label="Value of the test statistics", x=th, y=0.001)+
+ geom_text(label="Null distribution", x=mean(Th), y=0.001)+
+ theme_bw()
 ##############
 #Visualisation
 ##############

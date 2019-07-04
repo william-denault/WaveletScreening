@@ -1,7 +1,7 @@
 Package: WaveletScreaming
 Type: Package
 Title: A package to perform Wavelet Screaming on GWAS data 
-Version: 0.1.1
+Version: 0.1.3
 Author: William Denault
 Maintainer: William Denault <william.denault@gmail.com>
 Description: Functions to perform genome wide screeening association through wavelet transform
@@ -12,7 +12,8 @@ Depends:
     parallel (>= 3.4.3),
     snow (>= 0.4-2),
     wavethresh (>= 4.6.8),
-    ggplot2 (>= 2.2.1)
+    ggplot2 (>= 2.2.1),
+    mvtnorm (>= 1.0-8)
 RoxygenNote: 6.1.1
 Suggests: knitr, rmarkdown, data.table, fExtremes (>= 3042.82)
 VignetteBuilder: knitr

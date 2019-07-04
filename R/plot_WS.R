@@ -5,14 +5,13 @@
 #'@param lev_res the maximum level of resolution needed, has to be less or equal to the request level of resolution in the Wavelet_screaming.
 #'@param fill logical, if not provide set as TRUE.
 #'@param dg numerical, the number of digits display on the x axe. If missing set at 3.
-#'@param  BF_lev Level of Bayes Factor use to overlay regions. IF missing set as 1.
 #'@return return a ggplot
 #' @details The function generate a ggplot from the wavelet screaming output. It represents the Bayes factor for the different levels scales of the wavelets decomposition.
 #'The size and the darkness of the points that represent the Bayes factor are scaled by the value of the Bayes factors.
 #'If a Bayes factor is greater than 1 then the region that represent the Bayes factor is filled up in order to give an orverview of the size and the origin of the genetic signal.
 #'@seealso \code{\link{Wavelet_screaming}}
 
-plot_WS <- function(res,bp,lev_res,fill,dg,BF_lev)
+plot_WS <- function(res,bp,lev_res,fill,dg)
 {
 
   if(missing(fill))
@@ -27,13 +26,10 @@ plot_WS <- function(res,bp,lev_res,fill,dg,BF_lev)
   {
     bp=c(0,1)
   }
-
-  if(missing(BF_lev))
-  {
-    BF_lev=1
-  }
+  sel <- names(res)
+  pos <- grep("Pi",sel)
   res <- as.numeric(res)
-  res <- res[-c(1:(lev_res+2))]
+  prt <- res[pos]#posterior probabilities of H1
 
   ypos <- seq(from = 1, to = 0, length.out=lev_res+1 )
   y<- c()
@@ -53,15 +49,15 @@ plot_WS <- function(res,bp,lev_res,fill,dg,BF_lev)
     }
 
   }
-  point_size <- res
-  point_size[which(res< BF_lev )]<-NA
+  point_size <- res[grep("Beta",sel)]#Betas for size of point
+  point_size[which(prt== 0 )]<-NA
 
   #############
   #Option here
   #############
   disp <- c(point_size,point_size)
 
-
+  point_size<-res[grep("Beta",sel)]
   df <- data.frame(x=x,y=y,levres=levres, ps =point_size)
 
 
@@ -81,20 +77,28 @@ plot_WS <- function(res,bp,lev_res,fill,dg,BF_lev)
 
   mx <- c(x,x)
   mycol <- c(df$levres,df$levres)
-  ps <-c(res,res)
+  ps <-abs(c(point_size ,point_size ))
+  ps2 <- c(point_size ,point_size )
+  df_fill <- data.frame(xfil=xfil ,y=my,group=gl,col =mycol,x=mx, ps =abs(ps))
 
-  df_fill <- data.frame(xfil=xfil ,y=my,group=gl,col =mycol,x=mx, ps =ps)
+  lim <- c( min(-max(point_size),min(point_size)),
+            max(max(point_size),-min(point_size)))
+  lim
+
+
   if(fill==TRUE)
   {
 
-    P1 <-ggplot(df_fill, aes(x=xfil,y=y, group=group,fill=col))+
+    P1 <- ggplot(df_fill, aes(x=xfil,y=y, group=group,fill=col))+
       geom_area(position="identity")+
-      geom_point(aes(x=x,y=my,size=log10(ps),col=log10(ps)))+
+      geom_point(aes(x=x,y=my,size=ps+1,col=ps2))+
 
-      scale_color_gradient(low = 'gray', high ='black',guide='none' )+
+      #scale_color_gradient(low = 'grey80', high ='grey20',guide='none' )+
+      scale_color_gradient2(low = 'blue', high ='red', mid="white",guide='none',limits=lim )+
 
-      scale_fill_gradient(low = 'blue', high ='red' ,guide='none')+
-      guides( size = FALSE)+
+
+      scale_fill_gradient( high= "green", low = "purple" ,guide='none')+
+      guides( size = FALSE,col=FALSE)+
       ylab("Level of resolution")+
       xlab("Base pair position")+
       scale_y_continuous(breaks=unique(df_fill$y ), labels =0:lev_res)+
@@ -105,9 +109,10 @@ plot_WS <- function(res,bp,lev_res,fill,dg,BF_lev)
   }
   if(fill==FALSE)
   {
-    P1 <-     ggplot(df_fill, aes(x=x,y=my,size=log10(ps)))+
-      guides( size = FALSE)+
-      geom_point()+
+    P1 <-     ggplot(df_fill, aes(x=x,y=my,size=abs(ps)))+
+      guides( size = FALSE,col=FALSE)+
+      geom_point(aes(x=x,y=my,size=ps+1,col=ps))+
+      scale_color_gradient(low = 'grey80', high ='grey20',guide='none' )+
       scale_y_continuous(breaks=unique(df_fill$y ), labels =0:lev_res)+
       scale_x_continuous(breaks=seq(0,1 ,by=0.125), labels =seq(min(bp),max(bp),length.out = 9))+
       theme_bw()
@@ -117,3 +122,5 @@ plot_WS <- function(res,bp,lev_res,fill,dg,BF_lev)
   return(P1)
 
 }
+
+

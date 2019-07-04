@@ -5,9 +5,10 @@
 #'@param bp vector of the base pairs positions. It has to be in the same order and length than the loci line order/length.
 #'@param confounder the confounding matrix with the same sample order as Y. The intercept should not be included, if missing will generate a intercept matrix.
 #'@param lev_res the maximum level of resolution needed
-#'@param sigma_b the parameter of the NIG prior used for the Bayes Factor computation. We advised to set this value between 0.1 and 0.2
+#'@param sigma_b the parameter of the NIG prior used for the betas computation. We advised to set this value between 0.1 and 0.2
 #'@param coeftype type of wavelet coefficient used for the screening. By default set as "d" difference, "c" can be used if you prefere to work in term of amount of variants instead in disrepency within sub loci.
 #'@param para logical parameter for parallelisation, if not specified set at FALSE.
+#'@param BF logical parameter for getting Bayes Factor of wavelet regression, if not specified set at FALSE.
 #'@details The Wavelet_screaming function computes the Likelihood ratio used for testing significance of a genetic region. In addition it computes
 #'the porportion of wavelets coefficients associated by level of resolution, and the Bayes factor used for this estimation. All the details
 #'of the computation can be found in our paper "Wavelet Screaming: a novel look to GWAS data"
@@ -15,7 +16,7 @@
 #'@examples \dontrun{
 #'
 #'
-#'set.seed(666)
+#'set.seed(1)
 #'#########################################
 #'#Generate a randomly sample loci size=1Mb
 #'#########################################
@@ -47,6 +48,7 @@
 #'
 #'
 #'genotype <-  matrix(my_functions[my_bp,2 ], ncol=1 ) %*%t(matrix(type_fn,ncol=1))
+#'genotype <- genotype+ rnorm(dim(genotype)[1]*dim(genotype)[2],sd=0.1)
 #'#dim(genotype)= nSNP, nind
 #'
 #'###############################################################
@@ -84,42 +86,41 @@
 #'##################
 #'res <- Wavelet_screaming( Y,loci=genotype,bp=my_bp,
 #'                          lev_res=6,sigma_b = 0.2)
-#'# or:
-#'genotype_df <- as.data.frame(genotype)
-#'res <- Wavelet_screaming( Y,loci=genotype_df,bp=my_bp,
-#'                          lev_res=6,sigma_b = 0.2)
-#'#value of the test statistic
-#'res["Lambda"]
+#'res
+#'#value of the test statistics
+#'res[c("L_h","min_ph_pv")]
 #'#############
 #'#Significance
 #'#############
 #'
-#'#Estimation of the Bayes factor lambda_1 distribution parameter
-#'#Take a bit of time
-#'lambda <- get_lambda1(Y,sigma_b = 0.2)
-#'#Simulation of the test statistics under the null distribution of
-#'# the Bayes factor
-#'Sim_gam <- Simu_Lambda_null(nsimu=10000, lambda=lambda,lev_res = 6)
-#'val <- res["Lambda"]
+#'#Simulate the null distribution using proxy covariance matrix
 #'
-#'#Via Simulation
+#'Sim <- Simu_null_proxy(Y,lev_res = 6,sigma_b = 0.2,size=10000)
+#'head(Sim)
+#'#Calibration of the hyperparameter
+#'lambda <- Search_lambda(Sim,plot=TRUE)
 #'
-#'pval <-c(length(Sim_gam[which(Sim_gam>val)])+1)/(length(Sim_gam)+1)
-#'pval
+#'Th <- Sim[,c("L_h")]+lambda*Sim[,c("min_ph_pv")]
+#'muv <- median(Th,na.rm = TRUE)
+#'sdv <- mad(Th,na.rm = TRUE)
+#'####################################
+#'#Test Value of the loci to be tested
+#'####################################
+#'th <-  res[c("L_h")]+lambda*res["min_ph_pv"]
+#'#######
+#'#Pvalue
+#'#######
+#'1-pnorm(th,mean=muv,sd=sdv)
 #'
-#'#Via EVT
-#'#Should be preferred for smaller values of Lambda
-#'
-#'library(fExtremes)
-#'x <-  Sim_gam
-#'#Selecting the threshold
-#'thresh <- min(  max (c( 2.5*mean( Sim_Gamma) , quantile(Sim_Gamma,0.98)) ), quantile(Sim_Gamma,0.97))
-#'z = gpdFit(x, u = thresh , type = "mle")
-#'z
-#'pval <- 1-fExtremes::pgpd(q=res["Lambda"], xi=z@fit$par.ests["xi"], mu=z@parameter$u, beta=z@fit$par.ests["beta"])
-#'pval
-#'
-#'
+#'df <- data.frame(Th = Th,type = factor( c(rep("Null",length(Th)))) )
+#'ggplot(df,aes(Th,fill=type))+
+#'  xlim(c(min(c(Th,th)),max(Th,th)))+
+#'  geom_density()+
+#'  guides(fill=FALSE)+
+#'  geom_point(aes(x=th, y=0), colour="red")+theme(legend.position="none")+
+#'  geom_text(label="Value of the test statistics", x=th, y=0.001)+
+#'  geom_text(label="Null distribution", x=mean(Th), y=0.001)+
+#'  theme_bw()
 #'##############
 #'#Visualisation
 #'##############
@@ -130,14 +131,9 @@
 #'}
 
 
-Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",para=FALSE,betas=FALSE)
+Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",para=FALSE,BF=FALSE)
 {
-  #Loci: genotype matrix, line=SNP order in increasing bp, column individual genoype
-  #bp: position of the SNP in term of base pair
-  #confounder: designed matrix of the confounding effect size = n,c
-  #n= n ind, c= number of confounder
-  #lev_res: lev of resolution for the wavelet filtering
-  #sigma_b= Para of prior, should be <1 advised 0.2
+
 
 
   #To ensure the length not to be 0
@@ -159,15 +155,15 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
    		message("Continuous phenotype detected")
   	}
   }
-  if(missing(betas)) {
-    betas <- FALSE
+  if(missing(BF)) {
+    BF <- FALSE
   }
   # Writing the design matrix
   if(missing(confounder)) {
    	message("no covariates provided, using intercept only")
   	confounder <- data.frame(confounding=rep(1,length(Y)) )
   } else if(nrow(confounder)!=length(Y)) {
-  	stop("ERROR: number of samples in Y and confounder does not match")
+    stop("ERROR: number of samples in Y and confounder does not match")
   } else {
    	message(sprintf("%i covariates for %i samples detected", ncol(confounder), nrow(confounder)))
 	  confounder <- cbind(rep(1,length(Y)),confounder)
@@ -180,16 +176,16 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   	loci <- as.matrix(loci)
   }
   if(missing(loci) || !is.numeric(loci)){
-  	stop("ERROR: genotype matrix missing or not numeric")
+    stop("ERROR: genotype matrix missing or not numeric")
   } else if(ncol(loci)!=length(Y)){
-  	stop("ERROR: number of samples in Y and loci does not match")
+    stop("ERROR: number of samples in Y and loci does not match")
   } else {
    	message(sprintf("%i SNPs for %i samples detected", nrow(loci), ncol(loci)))
   }
 
   # Check position vector
   if(!is.numeric(bp) || !is.vector(bp)){
-  	stop("ERROR: must provide numeric position vector")
+    stop("ERROR: must provide numeric position vector")
   } else {
    	message(sprintf("positions for %i SNPs read", length(bp)))
   }
@@ -213,19 +209,20 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
 
   # workaround for git issue #1 - mysteriously empty slices
   if(is.null(dim(loci)) || dim(loci)[1] < 2^lev_res || dim(loci)[2] < 2){
-	warning("Warning: not enough genotypes remaining, returning empty output")
+	warning("not enough genotypes remaining, returning empty output")
 
     # Naming the output
-    names_BF <- c("BF_0_0")
+    names_Betas <- c("Beta_0_0")
     for(i in 1:lev_res){
-  	  for (j in 1:(2^i)){
-  		names_BF <- c(names_BF,paste("BF",i,j,sep = "_"))
-  	  }
+      for (j in 1:(2^i)){
+        names_BF <- c(names_BF,paste("Beta",i,j,sep = "_"))
+      }
     }
-    out = rep(NA, 1+lev_res+1+length(names_BF))
-    names(out) <- c("Lambda", paste("pi",0:lev_res, sep = "_"), names_BF)
+    out = rep(NA, 1+1+length(names_BF))
+    names(out) <- c("L_h","min_ph_pv", names_BF)
     return(out)
   }
+
 
   ####################################
   #Redefinition of the needed function
@@ -243,10 +240,10 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   #Quantile transform to prevent for non normaliy distrib WCs
   Quantile_transform  <- function(x)
   {
-    .ex.seed <- exists(".Random.seed")
-    if(.ex.seed) .oldseed <- .Random.seed
-    set.seed(666)
-    if(.ex.seed) on.exit(.Random.seed <<- .oldseed)
+    #.ex.seed <- exists(".Random.seed")
+    #if(.ex.seed) .oldseed <- .Random.seed
+    #set.seed(1)
+    #if(.ex.seed) on.exit(.Random.seed <<- .oldseed)
 
 
     x.rank = rank(x, ties.method="random")
@@ -254,78 +251,107 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
     return(qqnorm(x.rank,plot.it = F)$x)
   }
 
-  #Estimation of Lambda
-  Lambda_stat <- function (my_pi, my_bayes)
-  {
-    # vector: pi1 pi2 pi2 pi3 pi3 pi3 pi3...
-    my_pi_vec = rep(my_pi, 2^(1:length(my_pi)-1))
-    coefs = 1-my_pi_vec + my_pi_vec * my_bayes[1:(2^length(my_pi)-1)]
-    prod(coefs)
-  }
 
-  sumlog <- function (A1, A2)
-  {
-    if(A1 > A2){
-      res = A1 + log(1 + exp(A2 - A1))
-    }else{
-      res = A2 + log(exp(A1 - A2) + 1)
-    }
 
-    return(res)
-  }
-
-  max_EM_Lambda <- function(my_bayes)
-  {
-    niter=10000
+  max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {
+    niter = 100
     epsilon <- 10^-4
     p_vec <- c()
-    for(gi in 0: lev_res)
-    {
-      # EM algorithm for each group separately
-
-      N_obllikli = 0
-      logpi = log(0.5)
-      pi <- 0.5
-      log1pi = logpi
-
-      pp = 0
-      logPiBF = log(my_bayes[(2^gi):(2^(gi+1)-1)]) + logpi
-      logden <- c()
-      for (i in 1:length(logPiBF))
-      {
-        logden[i] <- sumlog(logPiBF[i],log1pi)
-      }
-      pp = pp+sum(exp(logPiBF - logden))
-      N_obllikli = sum(logden)
-      O_obllikli = N_obllikli
-
-
-      for(iter in  0:niter){
-        pi = pp/(2^(gi))
-        logpi  = log(pi)
-        log1pi = log(1-pi)
-        logPiBF =   log(my_bayes[(2^gi):(2^(gi+1)-1)]) + logpi
-        logden <- c()
-        for (i in 1:length(logPiBF))
-        {
-          logden[i] <- sumlog(logPiBF[i],log1pi)
-        }
-        pp=0
-        pp = pp+sum(exp(logPiBF - logden))
-        N_obllikli = sum(logden)
-        diff = abs(N_obllikli - O_obllikli)
-
-        if(diff < epsilon){
-          break
-        }else{
-          O_obllikli = N_obllikli
-        }
-      }
-      p_vec <-c(p_vec,pi)
+    sd_vec <- c()
+    erreur<-1+epsilon
+    eps <-10^-10#slight correction in case of non identifiable mixture
+    #prevent from having division by 0 in update parameter sum(temp)
+    betasub = my_betas
+    m0.hat <- 0
+    m1.hat <- 0
+    sigma0.hat <- null_sd
+    sigma1.hat <-alt_sd
+    #Prevent from label swapping
+    if(sigma1.hat < sigma0.hat){
+      sigma1.hat <- 3*sigma0.hat+sigma1.hat
     }
-    return(p_vec)
-  }
 
+    p.hat<-0.25
+    new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
+    erreur<-1+epsilon
+    iter <- 1
+
+    while((erreur>epsilon)&(iter<=niter))
+    {
+      old.log.lik<- sum(log(p.hat*dnorm( betasub ,m1.hat,sigma1.hat)+(1-p.hat)*dnorm( betasub ,m0.hat,sigma0.hat)))
+      old.params<-new.params
+      #vecteur des pi_{i1}^{t}
+      temp<-p.hat*dnorm( betasub ,m1.hat,sigma1.hat)/(p.hat*dnorm( betasub ,m1.hat,sigma1.hat)+(1-p.hat)*dnorm( betasub ,m0.hat,sigma0.hat))
+      #Update parameter
+      p.hat<-mean(temp)
+      m1.hat<-sum(temp* betasub)/(sum(temp)+eps)
+      #m0.hat<-sum((1-temp)* betasub)/(sum(1-temp)+eps)
+      sigma1.hat<-sqrt( sum(temp*( betasub-m1.hat)^2)/(sum(temp)+eps) )+alt_sd
+      sigma0.hat<-sqrt( sum((1-temp)*( betasub-m0.hat)^2)/(sum(1-temp)+eps) )
+      #limit the decrease of sigma0.hat in case of non identifiable mixture
+      if(sigma0.hat < 0.1*null_sd ){
+        sigma0.hat <- 0.1*null_sd
+      }
+      new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
+      #Check end
+      new.log.lik<- sum(log(p.hat*dnorm( betasub ,m1.hat,sigma1.hat)+(1-p.hat)*dnorm( betasub ,m0.hat,sigma0.hat)))
+      epsilon <- abs( new.log.lik -old.log.lik)
+      iter<-iter+1
+
+    }
+
+    #Proba Belong belong to the alternative:
+    pos.prob <- rep(NA,length(my_betas))
+    for (i in 1:length(my_betas))
+    {
+      pos.prob[i] <- p.hat*dnorm( my_betas[i] ,m1.hat,sigma1.hat)/(p.hat*dnorm( my_betas[i] ,m1.hat,sigma1.hat)+(1-p.hat)*dnorm( my_betas[i] ,m0.hat,sigma0.hat))
+
+    }
+
+    lambcom <- rep(NA,(lev_res+1))
+    p_vec   <- rep(NA,(lev_res+1))
+    for (gi in 0:lev_res) {
+
+      ####################################
+      #Soft Thresholding
+      ####################################
+      temp <- pos.prob[(2^gi):(2^(gi + 1) - 1)]- alp*sqrt(1/2^(gi -1))
+      pos.prob[(2^gi):(2^(gi + 1) - 1)] <-ifelse(temp<0,0, temp)
+      ####################################
+      #proportion of association per level
+      ####################################
+      p_vec[(gi+1)]    <-  mean(pos.prob[(2^gi):(2^(gi + 1) - 1)])
+      lambcom[(gi+1)]  <-  mean(pos.prob[(2^gi):(2^(gi + 1) - 1)]*dnorm( betasub[(2^gi):(2^(gi + 1) - 1)] ,m1.hat,sigma1.hat)-(1-pos.prob[(2^gi):(2^(gi + 1) - 1)])*dnorm( betasub[(2^gi):(2^(gi + 1) - 1)] ,m0.hat,sigma0.hat))
+    }
+    porth   <- rep(NA,(lev_res))
+    start <- 2^(1:lev_res)
+    end  <-2^((1+1):(lev_res+1))-1
+    for( gi in 0:(lev_res-1))
+    {
+      tempstart <- round(start + (gi)*(end-start)/lev_res)
+      tempend <-round(start + (gi+1)*(end-start)/lev_res)
+      ind <- c()
+      for ( j in 1:lev_res)
+      {
+        temp <- cbind(tempstart,tempend)
+        p1 <- temp[j,1]
+        p2 <- temp[j,2]
+        ind <- c(ind, p1:p2 )
+      }
+      porth[gi+1] <-  mean(pos.prob[ind])
+
+    }
+
+    #Preparing the output
+    ph <- sum(p_vec)
+    pv <- sum(porth)
+    min_ph_pv <- min( ph,pv)
+    L_h <- sum(lambcom)
+    out <- list()
+    out[[1]] <- c(L_h, min_ph_pv)
+    out[[2]] <- pos.prob
+    return( out)
+  }
 
   ###############
   #Paralelisation
@@ -349,17 +375,17 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
     class(LDIRWD) <- "wd"
     #Thresholding here
     LDIRWD <- threshold(LDIRWD,policy = "universal",type="hard",
-    				   dev = madmad,levels = 1:(LDIRWD$nlevels-1))
+                        dev = madmad,levels = 1:(LDIRWD$nlevels-1))
 
     res <- c()
     for(i in 0: lev_res){
-      	if(coeftype == "d"){
-        		res <- c(res, accessD( LDIRWD,lev = i) )
-    	} else if (coeftype == "c") {
-		        res <- c(res, accessC( LDIRWD,lev = i) )
-    	} else {
-    		stop(paste("ERROR: coeftype", coeftype, "not recognized"))
-    	}
+      if(coeftype == "d"){
+        res <- c(res, accessD( LDIRWD,lev = i) )
+      } else if (coeftype == "c") {
+        res <- c(res, accessC( LDIRWD,lev = i) )
+      } else {
+        stop(paste("ERROR: coeftype", coeftype, "not recognized"))
+      }
     }
 
     return(res)
@@ -385,94 +411,108 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   ##########
   #Modeling
   ##########
-   message("Computing Bayes Factors")
-  W <- as.matrix(confounder, ncol=ncol(confounder))
-  n = nrow(W)
-  q = ncol(W)
-
-  # L <- as.matrix(Y , ncol=ncol(Y)) #reversed regression
-  L <- as.matrix(Y,ncol=1)
-
-  p = 1
-  PW = diag(n) - W %*% solve(t(W) %*% W) %*% t(W)
-  X = PW %*% L
-  HB = X %*% solve(t(X) %*% X + diag(1/sigma_b/sigma_b,p)) %*% t(X)
-  delta = svd(X)$d
-  lambda = delta^2 / (delta^2 + 1/sigma_b/sigma_b)
-  log.T = sum(log(1-lambda))/2
 
 
-  my_bf <- function( y ){
-    y <-  as.matrix(y,ncol=1)
-    log.R = -0.5*n*log(1 - (t(y) %*% HB %*% y) / (t(y) %*% PW %*% y ))
+  message("Computing Beta values")
+  betas_f <- function(y)
+  {
 
-    bf = exp(log.T + log.R)
-    return(c(bf))
+    confounder <- data.frame(confounder)
+    pc <- dim(confounder)[2]
+    Dmat <- cbind(confounder,Y)
+    Dmat <- as.matrix(Dmat)
+
+    res <- solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2])) %*% t(Dmat)%*% y
+    index <- pc+1
+
+    return(res[index,1])
   }
-
-
 
 
   if(para==TRUE)
   {
-    clusterExport(cl,"log.T")
-    clusterExport(cl,"sigma_b")
-    clusterExport(cl,"my_bf")
-    my_bayes <- snow::parApply(cl,Gen_W_trans, 2, my_bf )
+
+    clusterExport(cl,"betas_f")
+    my_betas <- snow::parApply(Gen_W_trans, 2, betas_f )
   }
   else{
-    my_bayes <- apply(Gen_W_trans, 2, my_bf )
-  }
-
-  if(betas ==TRUE)
-  {
-     message("Computing Beta values")
-    betas_f <- function(y)
-    {
-      confounder <- data.frame(confounder)
-      pc <- dim(confounder)[2]
-      Dmat <- cbind(confounder,Y)
-      Dmat <- as.matrix(Dmat)
-
-      res <- solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2])) %*% t(Dmat)%*% y
-      index <- pc+1
-
-      return(res[index,1])
-    }
     my_betas <- apply(Gen_W_trans, 2, betas_f )
   }
 
-  #################
-  #Estimation Lambda
-  #################
-   message("Post-processing")
-  my_pis <- max_EM_Lambda(my_bayes = my_bayes)
-  trueLambda <- Lambda_stat(my_pi = my_pis,my_bayes = my_bayes)
-
-  if(betas ==FALSE)
+  if(BF ==TRUE)
   {
-    out <- c(trueLambda,my_pis,my_bayes)
+    message("Computing Bayes Factors")
+    W <- as.matrix(confounder, ncol=ncol(confounder))
+    n = nrow(W)
+    q = ncol(W)
+
+    # L <- as.matrix(Y , ncol=ncol(Y)) #reversed regression
+    L <- as.matrix(Y,ncol=1)
+
+    p = 1
+    PW = diag(n) - W %*% solve(t(W) %*% W) %*% t(W)
+    X = PW %*% L
+    HB = X %*% solve(t(X) %*% X + diag(1/sigma_b/sigma_b,p)) %*% t(X)
+    delta = svd(X)$d
+    lambda = delta^2 / (delta^2 + 1/sigma_b/sigma_b)
+    log.T = sum(log(1-lambda))/2
+
+    my_bf <- function( y ){
+      y <-  as.matrix(y,ncol=1)
+      log.R = -0.5*n*log(1 - (t(y) %*% HB %*% y) / (t(y) %*% PW %*% y ))
+
+      bf = exp(log.T + log.R)
+      return(c(bf))
+    }
+    my_bayes <- apply(Gen_W_trans, 2, my_bf )
+  }
+
+  ###########################
+  #Computation test statstics
+  ###########################
+  message("Post-processing")
+
+  Dmat <- cbind(confounder,Y)
+  Dmat <- as.matrix(Dmat)
+
+  null_sd <- sqrt(solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2]))["Y","Y"])
+  alt_sd <- 100*null_sd
+  #Shrinkage coefficient for the EM
+  alp <-  1/sqrt(2*log(length(Y)))
+  my_betas <- as.numeric(my_betas)
+  rest <- max_EM_post_Beta(my_betas=my_betas, lev_res = lev_res, null_sd =  null_sd, alt_sd = alt_sd,alp = alp)
+
+  test_stat <- rest[[1]]
+  postH1 <- rest[[2]]
+
+
+  if(BF ==FALSE)
+  {
+    out <- c(test_stat,my_betas,postH1)
   }
   else
   {
-    out <- c(trueLambda,my_pis,my_bayes,my_betas)
+    out <-  c(test_stat,my_betas,postH1,my_bayes)
   }
 
   #Naming the output
-  if(betas ==FALSE)
+  if(BF ==FALSE)
   {
-   names_BF <- c("BF_0_0")
-   for(i in 1:lev_res)
-   {
-     for (j in 1:(2^i))
-     {
-       names_BF <- c(names_BF,paste("BF",i,j,sep = "_"))
-     }
-   }
+    names_Betas <- c("Beta_0_0")
+    names_postH1 <-  c("Pi_0_0")
+    for(i in 1:lev_res)
+    {
+      for (j in 1:(2^i))
+      {
+        names_Betas <- c(names_Betas,paste("Beta",i,j,sep = "_"))
+        names_postH1 <- c(names_postH1,paste("Pi",i,j,sep = "_"))
+      }
+    }
 
-   names(out) <- c("Lambda",
-                   paste("pi",0:lev_res, sep = "_"),
-                   names_BF)
+    names(out) <- c("L_h",
+                    "min_ph_pv",
+                    names_Betas,
+                    names_postH1)
   }
   else
   {
@@ -485,16 +525,20 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
       }
     }
     names_Betas <- c("Beta_0_0")
+    names_postH1 <-  c("Pi_0_0")
     for(i in 1:lev_res)
     {
       for (j in 1:(2^i))
       {
         names_Betas <- c(names_Betas,paste("Beta",i,j,sep = "_"))
+        names_postH1 <- c(names_postH1,paste("Pi",i,j,sep = "_"))
       }
     }
-    names(out) <- c("Lambda",
-                    paste("pi",0:lev_res, sep = "_"),
-                    names_BF,names_Betas)
+    names(out) <- c("L_h",
+                    "min_ph_pv",
+                    names_Betas,
+                    names_postH1,
+                    names_BF)
   }
 
 
@@ -506,4 +550,3 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   }
   return(out)
 }
-
