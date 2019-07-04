@@ -20,8 +20,7 @@ Simu_null_emp <- function(emp_cov,smp_size,lev_res,size,sigma_b,print=TRUE)
   ######################################
 
   if(!(dim(emp_cov)[1]==nbeta &dim(emp_cov)[2]==nbeta )){
-    print("Warning: Empirical Covariance Matrix not of the good size")
-    break
+    stop("Warning: the size of Empirical Covariance Matrix is not correct", call. = FALSE)
   }
 
 

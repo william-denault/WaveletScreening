@@ -34,8 +34,7 @@ Search_lambda <- function(Sim,plot=FALSE)
 {
  if(dim(Sim)[1]<10000)
  {
-   print("Not enough simulation, please provide at least 10,000 simulations")
-   break
+   stop("Not enough simulations, please provide at least 10,000 simulations")
  }
   lh <- Sim[,"L_h"]
   mph_pv <- Sim[,"min_ph_pv"]
