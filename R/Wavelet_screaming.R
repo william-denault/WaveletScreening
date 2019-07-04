@@ -146,17 +146,17 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
 
 
   # INPUT CHECKS
-  print("Input dimensions:")
+   message("Input dimensions:")
   if(!is.numeric(Y) || length(Y)==0){
     stop("ERROR: Y is not a numeric vector")
   } else {
-  	print(sprintf("%i phenotypes detected", length(Y)))
+   	message(sprintf("%i phenotypes detected", length(Y)))
   	if(all(Y %in% c(0,1))){
-  		print("Binary phenotype detected")
+   		message("Binary phenotype detected")
   	} else if(!is.vector(Y)){
   		stop("ERROR: Y is not a vector. Multi-phenotype analysis not implemented yet.")
   	} else {
-  		print("Continuous phenotype detected")
+   		message("Continuous phenotype detected")
   	}
   }
   if(missing(betas)) {
@@ -164,19 +164,19 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   }
   # Writing the design matrix
   if(missing(confounder)) {
-  	print("no covariates provided, using intercept only")
+   	message("no covariates provided, using intercept only")
   	confounder <- data.frame(confounding=rep(1,length(Y)) )
   } else if(nrow(confounder)!=length(Y)) {
   	stop("ERROR: number of samples in Y and confounder does not match")
   } else {
-  	print(sprintf("%i covariates for %i samples detected", ncol(confounder), nrow(confounder)))
+   	message(sprintf("%i covariates for %i samples detected", ncol(confounder), nrow(confounder)))
 	  confounder <- cbind(rep(1,length(Y)),confounder)
   }
 
 
   # Check genotype matrix
   if(is.data.frame(loci)){
-  	print("Converting genotype data to matrix")
+   	message("Converting genotype data to matrix")
   	loci <- as.matrix(loci)
   }
   if(missing(loci) || !is.numeric(loci)){
@@ -184,14 +184,14 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   } else if(ncol(loci)!=length(Y)){
   	stop("ERROR: number of samples in Y and loci does not match")
   } else {
-  	print(sprintf("%i SNPs for %i samples detected", nrow(loci), ncol(loci)))
+   	message(sprintf("%i SNPs for %i samples detected", nrow(loci), ncol(loci)))
   }
 
   # Check position vector
   if(!is.numeric(bp) || !is.vector(bp)){
   	stop("ERROR: must provide numeric position vector")
   } else {
-  	print(sprintf("positions for %i SNPs read", length(bp)))
+   	message(sprintf("positions for %i SNPs read", length(bp)))
   }
 
   # Clean missing samples from all inputs
@@ -200,7 +200,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   keepGT <- complete.cases(t(loci))
   nonmissing_index <- which(keepGT & keepY & keepC)
   if(length(nonmissing_index) != length(Y)){
-  	print(sprintf("Warning: %i individuals will be removed due to missingness",
+	warning(sprintf("Warning: %i individuals will be removed due to missingness",
   			length(Y) - length(nonmissing_index)))
   }
 
@@ -208,12 +208,12 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   confounder <- confounder[nonmissing_index,]
   loci <- loci[,nonmissing_index]
 
-  print(paste("N individuals analysed = ", dim(loci)[2],
-  			", N SNPs analysed = ",dim(loci)[1]))
+   message(paste("N individuals analysed = ", dim(loci)[2],
+   			", N SNPs analysed = ",dim(loci)[1]))
 
   # workaround for git issue #1 - mysteriously empty slices
   if(is.null(dim(loci)) || dim(loci)[1] < 2^lev_res || dim(loci)[2] < 2){
-  	print("Warning: not enough genotypes remaining, returning empty output")
+	warning("Warning: not enough genotypes remaining, returning empty output")
 
     # Naming the output
     names_BF <- c("BF_0_0")
@@ -338,7 +338,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   ###################
   #Wavelet processing
   ###################
-  print("Wavelet processing")
+   message("Wavelet processing")
 
   Time01 <- (bp- min(bp))/(max(bp)-min(bp))
   my_wavproc <- function(y)
@@ -385,7 +385,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   ##########
   #Modeling
   ##########
-  print("Computing Bayes Factors")
+   message("Computing Bayes Factors")
   W <- as.matrix(confounder, ncol=ncol(confounder))
   n = nrow(W)
   q = ncol(W)
@@ -426,7 +426,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
 
   if(betas ==TRUE)
   {
-    print("Computing Beta values")
+     message("Computing Beta values")
     betas_f <- function(y)
     {
       confounder <- data.frame(confounder)
@@ -445,7 +445,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   #################
   #Estimation Lambda
   #################
-  print("Post-processing")
+   message("Post-processing")
   my_pis <- max_EM_Lambda(my_bayes = my_bayes)
   trueLambda <- Lambda_stat(my_pi = my_pis,my_bayes = my_bayes)
 
