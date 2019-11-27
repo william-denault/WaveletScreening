@@ -1,16 +1,16 @@
-#'@title Data visualisation for Wavelet screaming output
-#'@description  Data visualisation of Wavelet screaming results
-#'@param res Output of Wavelet_screaming, without Betas.
-#'@param bp a vector of the base pairs position of the loci, you can provide only the starting point and the end point of the loci. If missing set as 0, 1.
-#'@param lev_res the maximum level of resolution needed, has to be less or equal to the request level of resolution in the Wavelet_screaming.
-#'@param fill logical, if not provide set as TRUE.
-#'@param dg numerical, the number of digits display on the x axe. If missing set at 3.
+#'@title Data visualization for the output of Wavelet Screaming
+#'@description  Data visualization of Wavelet Screaming results.
+#'@param res Output of Wavelet_screaming, without Bayes Factor.
+#'@param bp a vector of the basepair position of the locus. You can provide only the starting and the endpoint of the locus. If missing ,set as 0, 1.
+#'@param lev_res the maximum level of resolution needed. This has to be less or equal to the requested level of resolution in the Wavelet_screaming.
+#'@param fill logical. If not, provide set as TRUE.
+#'@param dg numerical. This is the number of digits displayed on the x-axis. If missing, set at 3.
 #'@return return a ggplot
-#' @details The function generate a ggplot from the wavelet screaming output. It represents the Bayes factor for the different levels scales of the wavelets decomposition.
-#'The size and the darkness of the points that represent the Bayes factor are scaled by the value of the Bayes factors.
-#'If a Bayes factor is greater than 1 then the region that represent the Bayes factor is filled up in order to give an orverview of the size and the origin of the genetic signal.
+#' @details The function generates a ggplot from the Wavelet Screaming output. It represents the Betas for the different scales of the wavelet decomposition.
+#'The size and the darkness of the points that represent the Betas are scaled by the value of the Betas.
+#'If a Beta is not thresholded, then the region that represents the Beta is highlighted in order to give an overview of the size and the origin of the genetic signal.
 #'@seealso \code{\link{Wavelet_screaming}}
-
+#'
 plot_WS <- function(res,bp,lev_res,fill,dg)
 {
 

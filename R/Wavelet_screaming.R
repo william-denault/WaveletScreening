@@ -1,27 +1,24 @@
 #'@title Main function to perform wavelet screaming
-#'@description  Perform a wavelet screening of a loci for a given phenotype and a specified level of resolution
-#'@param Y phenotype vector, has to be numeric. For case control code it as 0 and 1. Multiple label phenotype will be implemented in the next version
-#'@param loci genotype matrix (either data.frame or numeric matrix). Lines=SNPs in increasing order in term of base pair, columns=individuals. No missing values allowed.
-#'@param bp vector of the base pairs positions. It has to be in the same order and length than the loci line order/length.
-#'@param confounder the confounding matrix with the same sample order as Y. The intercept should not be included, if missing will generate a intercept matrix.
-#'@param lev_res the maximum level of resolution needed
-#'@param sigma_b the parameter of the NIG prior used for the betas computation. We advised to set this value between 0.1 and 0.2
-#'@param coeftype type of wavelet coefficient used for the screening. By default set as "d" difference, "c" can be used if you prefere to work in term of amount of variants instead in disrepency within sub loci.
-#'@param para logical parameter for parallelisation, if not specified set at FALSE.
-#'@param BF logical parameter for getting Bayes Factor of wavelet regression, if not specified set at FALSE.
-#'@details The Wavelet_screaming function computes the Likelihood ratio used for testing significance of a genetic region. In addition it computes
-#'the porportion of wavelets coefficients associated by level of resolution, and the Bayes factor used for this estimation. All the details
-#'of the computation can be found in our paper "Wavelet Screaming: a novel look to GWAS data"
-#'@return A named vector. First position the estimated value of the Lambda statistics, then the proportion of association per level of resolution then the computed Bayes Factor per wavelet coefficient.
-#'@examples \dontrun{
-#'
-#'
+#'@description  Perform a wavelet screening of a locus for a given phenotype and a specified level of resolution
+#'@param Y phenotype vector has to be numeric. For case-control  data, code it as 0 and 1. Multiple label phenotypes, e.g., ABO blood groups, will be implemented in the next version.
+#'@param loci genotype matrix (either data.frame or numeric matrix). Lines=SNPs in increasing order in terms of base pair, columns=individuals. No missing values allowed.
+#'@param bp vector of the base pairs positions. It has to be in the same order and length than the locus line order/length.
+#'@param confounder the confounding matrix with the same sample order as Y. The intercept should not be included if missing will generate an intercept matrix.
+#'@param lev_res the maximum level of resolution needed.
+#'@param sigma_b the parameter of the NIG prior used for the Beta computation. We advised setting this value between 0.1 and 0.2
+#'@param coeftype type of wavelet coefficient used for the screening.
+#'@param para logical parameter for parallelization, if not specified, set at FALSE by default.
+#'@param BF logical parameter for obtainning the Bayes Factor of the wavelet regression. If not specified, set at FALSEby default.
+#'@details The Wavelet_screaming function computes the likelihood ratio used for testing the significance of a genetic region. In addition, it computes
+#'the proportion of wavelet coefficients associated by the level of resolution and the Beta used for this estimation. All the details
+#'of the computation can be found in our paper, preliminarily titled "Wavelet Screaming: a novel look to GWAS data.".
+#'@return A named vector. The first position contains the estimated value of the Lambda statistics. The next positions of the vector are the computed proportion of associations per level of resolution.
 #'set.seed(1)
 #'#########################################
-#'#Generate a randomly sample loci size=1Mb
+#'#Generate a randomly sampled SNP from a locus of size=1Mb
 #'#########################################
 #'
-#'#5000 Randomly choosen bp
+#'#5000 Randomly choosen basepairs
 #'my_bp <- sort(sample(1:1000000, size=5000,replace = FALSE))
 #'#############################
 #'#Three different bump signals
@@ -38,7 +35,7 @@
 #'MAF=0.3
 #'sampl_schem <- c((1-MAF)^2,2*MAF*(1-MAF),MAF^2)
 #'#######################################
-#'#sampling at Hardy Weinberg equilibrium
+#'#Sampling at Hardy Weinberg equilibrium
 #'#######################################
 #'#Assigning class
 #'
@@ -52,7 +49,7 @@
 #'#dim(genotype)= nSNP, nind
 #'
 #'###############################################################
-#'#Generate a phenotype with variance explained by genotype  0.5%
+#'#Generate a phenotype with variance explained by genotype =0.5%
 #'###############################################################
 #'varexp=0.005
 #'var_noise <- (1-varexp)*var(sample(0:2,replace = TRUE,size=10000,
@@ -87,7 +84,7 @@
 #'res <- Wavelet_screaming( Y,loci=genotype,bp=my_bp,
 #'                          lev_res=6,sigma_b = 0.2)
 #'res
-#'#value of the test statistics
+#'#Value of the test statistics
 #'res[c("L_h","min_ph_pv")]
 #'#############
 #'#Significance
@@ -108,7 +105,7 @@
 #'####################################
 #'th <-  res[c("L_h")]+lambda*res["min_ph_pv"]
 #'#######
-#'#Pvalue
+#'#P-value
 #'#######
 #'1-pnorm(th,mean=muv,sd=sdv)
 #'
@@ -295,7 +292,7 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
       new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
       #Check end
       new.log.lik<- sum(log(p.hat*dnorm( betasub ,m1.hat,sigma1.hat)+(1-p.hat)*dnorm( betasub ,m0.hat,sigma0.hat)))
-      epsilon <- abs( new.log.lik -old.log.lik)
+      erreur <- abs( new.log.lik -old.log.lik)
       iter<-iter+1
 
     }
