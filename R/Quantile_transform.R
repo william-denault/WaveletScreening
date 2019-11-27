@@ -1,6 +1,6 @@
-#'@title Perform a quantile transform
-#'@description  Perform a quantile transform with ties taken at random
-#'@param x a vector to be quantile transform
+#'@title Quantile transform
+#'@description  Perform a quantile transform with ties taken at random.
+#'@param x a vector to be quantile transformed.
 #'@export
 #'@examples \dontrun{
 #'x <- rnorm(n=1000)

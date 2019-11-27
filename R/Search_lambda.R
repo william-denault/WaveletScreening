@@ -1,11 +1,11 @@
 #'@title Calibration of the hyperparameter
 #'@description  Perform a grid search for the tuning hyperparameter
-#'@param Sim a data frame with two columns named L_h and min_ph_pv, normaly generated from the Sim_null function. At least 10000 simulation
+#'@param Sim a data frame with two columns named L_h and min_ph_pv, normally generated from the Sim_null function. At least 10000 simulation
 #'@param lev_res the level of resolution in the wavelet transform
-#'@param emp_cov Emprical covariance matrix of the beta values. Can be computed using several results of the wavelet screaming using the betas values for different loci. If missing the function compute an approximation of the covariance matrix, this leads to a lost of power and a more conservative test statitics.
+#'@param emp_cov Empirical covariance matrix of the beta values. It can be computed using several results of the wavelet screaming using the betas values for different loci. If missing the function computes an approximation of the covariance matrix, this leads to a loss of power and a more conservative test statistics.
 #'@param size number of simulation to be performed
 #'@param sigma_b the parameter of the NIG prior used for the Betas computation.
-#'@return The simulation under the null of the two test statistics used to build the final test (i.e L_h and min(ph,pv))
+#'@return The simulation under the null of the two test statistics used to build the final test (i.e., L_h and min(ph,pv))
 #'@examples \dontrun{
 #'Y <- rnorm(4000)
 #'Sim <- Simu_null(Y=Y,lev_res = 6,sigma_b = 0.2,size=100000)

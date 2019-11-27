@@ -1,12 +1,11 @@
 #'@title Internal EM procedure
 #'@description  Internal EM procedure
-#'@param my_betas a vector of beta of length 2^lev_res
+#'@param my_betas a vector of Beta of length 2^lev_res
 #'@param lev_res the level of resolution in the wavelet transform
 #'@param null_sd starting point for sd of the null distribution in the EM procedure
 #'@param alt_sd starting point for sd of the alternative distribution in the EM procedure
-#'@param alp shrinkage parameter for computation of the test statsitcs
-#'@return The two test statistics used to build the final test (i.e L_h and min(ph,pv))
-
+#'@param alp shrinkage parameter for computation of the test statistic
+#'@return The two test statistics used to build the final test (i.e., L_h and min(ph,pv))
 
 max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {
   niter = 100

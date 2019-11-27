@@ -1,8 +1,8 @@
 #'@title Define chromosomal regions for screening
-#'@description  Define overlapping loci starting and ending positions for Wavelet screaming analysis
+#'@description  Define overlapping loci starting and ending positions for wavelet screaming analysis
 #'@param bp vector of the observed based pair positions in a chromosome
 #'@param Loci_size size of the defined loci, limited by thresh size gaps on ends. Slices smaller than Loci_size will be skipped.
-#'@param thresh maximal distance between two SNP within a loci. E.g 10000
+#'@param thresh maximal distance between two SNP within a locus. E.g., 10000
 #'@param Chr the chromosome's number where the slicing is made. By default set as NA
 #'@export
 #'@examples \dontrun{
@@ -24,10 +24,10 @@ slice_definition <- function(bp,Loci_size=1e6,thresh=1e4,Chr=NA)
   	stop("ERROR: bp was not a numeric vector")
   }
   bp <- sort(bp)
-  
+
   #First SNp at distance 0 of itself
   espacement <- c(0,diff(bp))
-  
+
   ##################################
   ##location where spacing is to big
   ##################################
@@ -37,7 +37,7 @@ slice_definition <- function(bp,Loci_size=1e6,thresh=1e4,Chr=NA)
   {
     my_index <- c(1, length(bp))
   }
-  
+
   #Check distance between problematic spacing
   Width_loci <- rep(0,length(my_index)-1)
 
@@ -57,7 +57,7 @@ slice_definition <- function(bp,Loci_size=1e6,thresh=1e4,Chr=NA)
   for(i in 1:(length(my_index)-1))
   {
     my_diff <- bp[my_index][i+1]-bp[my_index][i]
- 
+
     if( my_diff >= Loci_size ) #True means ok to run a wavelet analysis between my_index[i] and my_index[i+1]
     {
       Width_loci[i] <- my_diff
@@ -100,7 +100,7 @@ slice_definition <- function(bp,Loci_size=1e6,thresh=1e4,Chr=NA)
   # percentage of chromosome covered
   # note: does not necessarily correspond to coverage of genotyped positions
   coverage_of_analysis <- 100*sum(Width_loci)/(max(bp)-min(bp))
-  
+
   colnames(df) <- c("Chr","posStart","posEnd")
   print(paste("number of slices defined: ", nrow(df)))
   print(paste("percentage of chromosome covered after slice definition: ",

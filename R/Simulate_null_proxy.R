@@ -1,12 +1,12 @@
-#'@title Simulation of the null statsitics
-#'@description  Simulation of the null statsitics
-#'@param Y a vector of numeric values used in in the wavelet screaming function for association (phenotype or simulated phenotype with same distribution).
-#'@param confounder the confounding matrix with the same sample order as Y. The intercept should not be included, if missing will generate a intercept matrix.
+#'@title Simulation of the null statistics
+#'@description  Simulation of the null statistics
+#'@param Y a vector of numeric values used in the wavelet screaming function for association (a phenotype or simulated phenotype with the same distribution).
+#'@param confounder the confounding matrix with the same sample order as Y. The intercept should not be included if missing will generate an intercept matrix.
 #'@param lev_res the level of resolution in the wavelet transform
 #'@param size number of simulation to be performed
 #'@param sigma_b the parameter of the NIG prior used for the Betas computation.
-#'@param print logical parameter set as TRUE, if TRUE send message when 10\% of the simulations has been completed.
-#'@return The simulation under the null of the two test statistics used to build the final test (i.e L_h and min(ph,pv))
+#'@param print logical parameter set as TRUE, if TRUE sends a message when 10\% of the simulations have been completed.
+#'@return The simulation under the null of the two test statistics used to build the final test (i.e., L_h and min(ph,pv))
 #'@examples \dontrun{
 #'Y <- rnorm(4000)
 #'Sim <- Simu_null_proxy(Y=Y,lev_res = 6,sigma_b = 0.2,size=10000)

@@ -1,13 +1,12 @@
-#'@title Simulation of the null statsitics
-#'@description  Simulation of the null statsitics
-#'@param emp_cov Emprical covariance matrix of the beta values. Can be computed using several results of the wavelet screaming using the betas values for different loci. If missing the function compute an approximation of the covariance matrix, this leads to a lost of power and a more conservative test statitics.
+#'@title Simulation of the null statistics
+#'@description  Simulation of the null statistics
+#'@param emp_cov Empirical covariance matrix of the beta values. It can be computed using several results of the wavelet screaming using the betas values for different loci. If missing the function computes an approximation of the covariance matrix, this leads to a loss of power and a more conservative test statistics.
 #'@param smp_size Sample size from the main run of Wavelet Screaming
 #'@param lev_res the level of resolution in the wavelet transform
 #'@param size number of simulation to be performed
 #'@param sigma_b the parameter of the NIG prior used for the Betas computation.
-#'@param print logical parameter set as TRUE, if TRUE send message when 10\% of the simulations has been completed.
-#'@return The simulation under the null of the two test statistics used to build the final test (i.e L_h and min(ph,pv))
-
+#'@param print logical parameter set as TRUE, if TRUE sends a message when 10\% of the simulations have been completed.
+#'@return The simulation under the null of the two test statistics used to build the final test (i.e., L_h and min(ph,pv))
 Simu_null_emp <- function(emp_cov,smp_size,lev_res,size,sigma_b,print=TRUE)
 {
 
