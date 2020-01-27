@@ -2,12 +2,12 @@
 % Please edit documentation in R/Simu_null_emp.R
 \name{Simu_null_emp}
 \alias{Simu_null_emp}
-\title{Simulation of the null statsitics}
+\title{Simulation of the null statistics}
 \usage{
 Simu_null_emp(emp_cov, smp_size, lev_res, size, sigma_b, print = TRUE)
 }
 \arguments{
-\item{emp_cov}{Emprical covariance matrix of the beta values. Can be computed using several results of the wavelet screaming using the betas values for different loci. If missing the function compute an approximation of the covariance matrix, this leads to a lost of power and a more conservative test statitics.}
+\item{emp_cov}{Empirical covariance matrix of the beta values. It can be computed using several results of the wavelet screaming using the betas values for different loci. If missing the function computes an approximation of the covariance matrix, this leads to a loss of power and a more conservative test statistics.}
 
 \item{smp_size}{Sample size from the main run of Wavelet Screaming}
 
@@ -17,11 +17,11 @@ Simu_null_emp(emp_cov, smp_size, lev_res, size, sigma_b, print = TRUE)
 
 \item{sigma_b}{the parameter of the NIG prior used for the Betas computation.}
 
-\item{print}{logical parameter set as TRUE, if TRUE send message when 10\% of the simulations has been completed.}
+\item{print}{logical parameter set as TRUE, if TRUE sends a message when 10\% of the simulations have been completed.}
 }
 \value{
-The simulation under the null of the two test statistics used to build the final test (i.e L_h and min(ph,pv))
+The simulation under the null of the two test statistics used to build the final test (i.e., L_h and min(ph,pv))
 }
 \description{
-Simulation of the null statsitics
+Simulation of the null statistics
 }

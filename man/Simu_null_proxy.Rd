@@ -2,14 +2,14 @@
 % Please edit documentation in R/Simulate_null_proxy.R
 \name{Simu_null_proxy}
 \alias{Simu_null_proxy}
-\title{Simulation of the null statsitics}
+\title{Simulation of the null statistics}
 \usage{
 Simu_null_proxy(Y, confounder, lev_res, size, sigma_b, print = TRUE)
 }
 \arguments{
-\item{Y}{a vector of numeric values used in in the wavelet screaming function for association (phenotype or simulated phenotype with same distribution).}
+\item{Y}{a vector of numeric values used in the wavelet screaming function for association (a phenotype or simulated phenotype with the same distribution).}
 
-\item{confounder}{the confounding matrix with the same sample order as Y. The intercept should not be included, if missing will generate a intercept matrix.}
+\item{confounder}{the confounding matrix with the same sample order as Y. The intercept should not be included if missing will generate an intercept matrix.}
 
 \item{lev_res}{the level of resolution in the wavelet transform}
 
@@ -17,13 +17,13 @@ Simu_null_proxy(Y, confounder, lev_res, size, sigma_b, print = TRUE)
 
 \item{sigma_b}{the parameter of the NIG prior used for the Betas computation.}
 
-\item{print}{logical parameter set as TRUE, if TRUE send message when 10\% of the simulations has been completed.}
+\item{print}{logical parameter set as TRUE, if TRUE sends a message when 10\% of the simulations have been completed.}
 }
 \value{
-The simulation under the null of the two test statistics used to build the final test (i.e L_h and min(ph,pv))
+The simulation under the null of the two test statistics used to build the final test (i.e., L_h and min(ph,pv))
 }
 \description{
-Simulation of the null statsitics
+Simulation of the null statistics
 }
 \examples{
 \dontrun{

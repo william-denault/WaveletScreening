@@ -4,154 +4,45 @@
 \alias{Wavelet_screaming}
 \title{Main function to perform wavelet screaming}
 \usage{
-Wavelet_screaming(Y, loci, bp, confounder, lev_res, sigma_b,
-  coeftype = "d", para = FALSE, BF = FALSE)
+Wavelet_screaming(
+  Y,
+  loci,
+  bp,
+  confounder,
+  lev_res,
+  sigma_b,
+  coeftype = "d",
+  para = FALSE,
+  BF = FALSE
+)
 }
 \arguments{
-\item{Y}{phenotype vector, has to be numeric. For case control code it as 0 and 1. Multiple label phenotype will be implemented in the next version}
+\item{Y}{phenotype vector has to be numeric. For case-control  data, code it as 0 and 1. Multiple label phenotypes, e.g., ABO blood groups, will be implemented in the next version.}
 
-\item{loci}{genotype matrix (either data.frame or numeric matrix). Lines=SNPs in increasing order in term of base pair, columns=individuals. No missing values allowed.}
+\item{loci}{genotype matrix (either data.frame or numeric matrix). Lines=SNPs in increasing order in terms of base pair, columns=individuals. No missing values allowed.}
 
-\item{bp}{vector of the base pairs positions. It has to be in the same order and length than the loci line order/length.}
+\item{bp}{vector of the base pairs positions. It has to be in the same order and length than the locus line order/length.}
 
-\item{confounder}{the confounding matrix with the same sample order as Y. The intercept should not be included, if missing will generate a intercept matrix.}
+\item{confounder}{the confounding matrix with the same sample order as Y. The intercept should not be included if missing will generate an intercept matrix.}
 
-\item{lev_res}{the maximum level of resolution needed}
+\item{lev_res}{the maximum level of resolution needed.}
 
-\item{sigma_b}{the parameter of the NIG prior used for the betas computation. We advised to set this value between 0.1 and 0.2}
+\item{sigma_b}{the parameter of the NIG prior used for the Beta computation. We advised setting this value between 0.1 and 0.2}
 
-\item{coeftype}{type of wavelet coefficient used for the screening. By default set as "d" difference, "c" can be used if you prefere to work in term of amount of variants instead in disrepency within sub loci.}
+\item{coeftype}{type of wavelet coefficient used for the screening.}
 
-\item{para}{logical parameter for parallelisation, if not specified set at FALSE.}
+\item{para}{logical parameter for parallelization, if not specified, set at FALSE by default.}
 
-\item{BF}{logical parameter for getting Bayes Factor of wavelet regression, if not specified set at FALSE.}
+\item{BF}{logical parameter for obtainning the Bayes Factor of the wavelet regression. If not specified, set at FALSEby default.}
 }
 \value{
-A named vector. First position the estimated value of the Lambda statistics, then the proportion of association per level of resolution then the computed Bayes Factor per wavelet coefficient.
+
 }
 \description{
-Perform a wavelet screening of a loci for a given phenotype and a specified level of resolution
+Perform a wavelet screening of a locus for a given phenotype and a specified level of resolution
 }
 \details{
-The Wavelet_screaming function computes the Likelihood ratio used for testing significance of a genetic region. In addition it computes
-the porportion of wavelets coefficients associated by level of resolution, and the Bayes factor used for this estimation. All the details
-of the computation can be found in our paper "Wavelet Screaming: a novel look to GWAS data"
-}
-\examples{
-\dontrun{
-
-
-set.seed(666)
-#########################################
-#Generate a randomly sample loci size=1Mb
-#########################################
-
-#5000 Randomly choosen bp
-my_bp <- sort(sample(1:1000000, size=5000,replace = FALSE))
-#############################
-#Three different bump signals
-#############################
-my_functions <-data.frame(f0 = c(rep(0,400000),rep(0,200000),rep(0,400000)),
-                         f1 = c(rep(0,400000),rep(1,200000),rep(0,400000)) ,
-                         f2=c(rep(0,400000),rep(2,200000),rep(0,400000)))
-
-
-library(gridExtra)
-###########################
-#Minor allele frequency 30\%
-###########################
-MAF=0.3
-sampl_schem <- c((1-MAF)^2,2*MAF*(1-MAF),MAF^2)
-#######################################
-#sampling at Hardy Weinberg equilibrium
-#######################################
-#Assigning class
-
-#sample size =4000
-n_size=4000
-type_fn <-sample(0:2,replace = TRUE,size=n_size,  prob=  sampl_schem  )
-
-
-genotype <-  matrix(my_functions[my_bp,2 ], ncol=1 ) \%*\%t(matrix(type_fn,ncol=1))
-genotype <- genotype+ rnorm(dim(genotype)[1]*dim(genotype)[2],sd=0.1)
-#dim(genotype)= nSNP, nind
-
-###############################################################
-#Generate a phenotype with variance explained by genotype  0.5\%
-###############################################################
-varexp=0.005
-var_noise <- (1-varexp)*var(sample(0:2,replace = TRUE,size=10000,
-                                  prob=sampl_schem ))/varexp
-Y <-  rnorm(n=n_size,sd=sqrt(var_noise)) +type_fn
-df <- data.frame(y=Y,genotype =factor(type_fn))
-P1 <- ggplot(df,aes(y=y,x=genotype))+
- geom_boxplot()+
- xlab("Type of genotype")+
- theme(axis.text=element_text(size=12),
-       axis.title=element_text(size=14,face="bold"))+
- ylab("Simulated Phenotype")+
- theme_bw()+
- ggtitle("Variation of the phenotype\\ndepending of the genotype, \\nVariance explained =0.5\%")
-
-df <- data.frame(bp= rep(my_bp,3),y=c(my_functions[my_bp,1],my_functions[my_bp,2],my_functions[my_bp,3]),
-                mycol = factor(c(rep("f0",length(my_bp)),rep("f1",length(my_bp)),rep("f2",length(my_bp))) ) )
-
-P2 <- ggplot(df,aes(y=y,x=bp,color=mycol))+
- geom_point(size=1)+
- xlab("Base pair")+
- ylab("Number of variants")+
- theme_bw()+
- theme(legend.title=element_blank())+
- ggtitle("Three different kind of genotype signal")
-
-grid.arrange(P1,P2,ncol=2)
-
-##################
-#Wavelet screaming
-##################
-res <- Wavelet_screaming( Y,loci=genotype,bp=my_bp,
-                         lev_res=6,sigma_b = 0.2)
-res
-#value of the test statistics
-res[c("L_h","min_ph_pv")]
-#############
-#Significance
-#############
-
-#Simulate the null distribution using proxy covariance matrix
-
-Sim <- Simu_null_proxy(Y,lev_res = 6,sigma_b = 0.2,size=10000)
-head(Sim)
-#Calibration of the hyperparameter
-lambda <- Search_lambda(Sim,plot=TRUE)
-
-Th <- Sim[,c("L_h")]+lambda*Sim[,c("min_ph_pv")]
-muv <- median(Th,na.rm = TRUE)
-sdv <- mad(Th,na.rm = TRUE)
-####################################
-#Test Value of the loci to be tested
-####################################
-th <-  res[c("L_h")]+lambda*res["min_ph_pv"]
-#######
-#Pvalue
-#######
-1-pnorm(th,mean=muv,sd=sdv)
-
-df <- data.frame(Th = Th,type = factor( c(rep("Null",length(Th)))) )
-ggplot(df,aes(Th,fill=type))+
- xlim(c(min(c(Th,th)),max(Th,th)))+
- geom_density()+
- guides(fill=FALSE)+
- geom_point(aes(x=th, y=0), colour="red")+theme(legend.position="none")+
- geom_text(label="Value of the test statistics", x=th, y=0.001)+
- geom_text(label="Null distribution", x=mean(Th), y=0.001)+
- theme_bw()
-##############
-#Visualisation
-##############
-bp <- c(min(my_bp),max(my_bp))
-plot_WS(res=res,bp=bp,lev_res=6)
-
-
-}
+The Wavelet_screaming function computes the likelihood ratio used for testing the significance of a genetic region. In addition, it computes
+the proportion of wavelet coefficients associated by the level of resolution and the Beta used for this estimation. All the details
+of the computation can be found in our paper, preliminarily titled "Wavelet Screaming: a novel look to GWAS data.".
 }

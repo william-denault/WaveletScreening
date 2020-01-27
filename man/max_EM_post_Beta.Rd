@@ -7,7 +7,7 @@
 max_EM_post_Beta(my_betas, lev_res, null_sd, alt_sd, alp)
 }
 \arguments{
-\item{my_betas}{a vector of beta of length 2^lev_res}
+\item{my_betas}{a vector of Beta of length 2^lev_res}
 
 \item{lev_res}{the level of resolution in the wavelet transform}
 
@@ -15,10 +15,10 @@ max_EM_post_Beta(my_betas, lev_res, null_sd, alt_sd, alp)
 
 \item{alt_sd}{starting point for sd of the alternative distribution in the EM procedure}
 
-\item{alp}{shrinkage parameter for computation of the test statsitcs}
+\item{alp}{shrinkage parameter for computation of the test statistic}
 }
 \value{
-The two test statistics used to build the final test (i.e L_h and min(ph,pv))
+The two test statistics used to build the final test (i.e., L_h and min(ph,pv))
 }
 \description{
 Internal EM procedure

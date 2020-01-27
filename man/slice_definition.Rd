@@ -11,12 +11,12 @@ slice_definition(bp, Loci_size = 1e+06, thresh = 10000, Chr = NA)
 
 \item{Loci_size}{size of the defined loci, limited by thresh size gaps on ends. Slices smaller than Loci_size will be skipped.}
 
-\item{thresh}{maximal distance between two SNP within a loci. E.g 10000}
+\item{thresh}{maximal distance between two SNP within a locus. E.g., 10000}
 
 \item{Chr}{the chromosome's number where the slicing is made. By default set as NA}
 }
 \description{
-Define overlapping loci starting and ending positions for Wavelet screaming analysis
+Define overlapping loci starting and ending positions for wavelet screaming analysis
 }
 \examples{
 \dontrun{

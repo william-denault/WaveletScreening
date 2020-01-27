@@ -2,7 +2,7 @@
 % Please edit documentation in R/extract_tree.R
 \name{extract_tree}
 \alias{extract_tree}
-\title{Extract sub result from result of the wavelet_screaming}
+\title{Extract sub result from the result of the wavelet_screaming}
 \usage{
 extract_tree(res, lev_res, thresh)
 }
@@ -11,10 +11,10 @@ extract_tree(res, lev_res, thresh)
 
 \item{lev_res}{the maximum level of resolution needed, has to be less or equal to the request level of resolution in the Wavelet_screaming.}
 
-\item{thresh}{Minimal value of the Bayes Factor to  defined the a sub region, if missing set as 1.}
+\item{thresh}{Minimal value of the Bayes Factor to defined a sub-region if missing set as 1.}
 }
 \value{
-A vector correpsonding of the sub tree for the zoomed analysis.
+A vector corresponding to the subtree for the zoomed analysis.
 }
 \description{
 Function to performed zoomed analysis of the wavelet screaming output

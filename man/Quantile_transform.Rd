@@ -2,15 +2,15 @@
 % Please edit documentation in R/Quantile_transform.R
 \name{Quantile_transform}
 \alias{Quantile_transform}
-\title{Perform a quantile transform}
+\title{Quantile transform}
 \usage{
 Quantile_transform(x)
 }
 \arguments{
-\item{x}{a vector to be quantile transform}
+\item{x}{a vector to be quantile transformed.}
 }
 \description{
-Perform a quantile transform with ties taken at random
+Perform a quantile transform with ties taken at random.
 }
 \examples{
 \dontrun{

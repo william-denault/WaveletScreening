@@ -2,7 +2,7 @@
 % Please edit documentation in R/Fine_mapping.R
 \name{fine_map}
 \alias{fine_map}
-\title{Defintion of the regions with Bayes factor over a threshold.}
+\title{Definition of the regions with unthresholded Betas.}
 \usage{
 fine_map(res, lev_res, thresh, start, end, chr)
 }
@@ -13,13 +13,13 @@ fine_map(res, lev_res, thresh, start, end, chr)
 
 \item{thresh}{numeric, Bayes factor threshold to defined the fine mapping. If missing set as 1.}
 
-\item{start}{numeric, start in base pair of the analyzed regions .}
+\item{start}{numeric, start in base pair of the analyzed regions.}
 
-\item{chr}{numeric, end in base pair of the analyzed regions .}
+\item{chr}{numeric, end in base pair of the analyzed regions.}
 }
 \description{
 Fine mapping tool for output of the Wavelet Screaming function.
 }
 \details{
-return a list of chr, start, end position, that correspond of the sub regions defined by the dyadic decomposition of wavelet that are associated with a Bayes factor over the defined threshold.
+return a list of chr, start end position, that corresponds of the sub-regions defined by the dyadic decomposition of wavelet that is associated with a Bayes factor over the defined threshold.
 }
