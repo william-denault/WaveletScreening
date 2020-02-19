@@ -212,11 +212,11 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
     names_Betas <- c("Beta_0_0")
     for(i in 1:lev_res){
       for (j in 1:(2^i)){
-        names_BF <- c(names_BF,paste("Beta",i,j,sep = "_"))
+        names_Betas <- c(names_Betas,paste("Beta",i,j,sep = "_"))
       }
     }
-    out = rep(NA, 1+1+length(names_BF))
-    names(out) <- c("L_h","min_ph_pv", names_BF)
+    out = rep(NA, 1+1+length(names_Betas))
+    names(out) <- c("L_h","min_ph_pv",names_Betas)
     return(out)
   }
 
