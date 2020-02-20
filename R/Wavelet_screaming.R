@@ -6,7 +6,8 @@
 #'@param confounder the confounding matrix with the same sample order as Y. The intercept should not be included if missing will generate an intercept matrix.
 #'@param lev_res the maximum level of resolution needed.
 #'@param sigma_b the parameter of the NIG prior used for the Beta computation. We advised setting this value between 0.1 and 0.2
-#'@param coeftype type of wavelet coefficient used for the screening.
+#'@param coeftype type of wavelet coefficient used for the screening (choice "c" or "d"). If missing set as "d"
+#'@param base_shrink numeric, value used in the thresholding of the proportion of assocation, if non specificed set up as 1/sqrt(2*log(sample_size))
 #'@param para logical parameter for parallelization, if not specified, set at FALSE by default.
 #'@param BF logical parameter for obtainning the Bayes Factor of the wavelet regression. If not specified, set at FALSEby default.
 #'@details The Wavelet_screaming function computes the likelihood ratio used for testing the significance of a genetic region. In addition, it computes
@@ -128,7 +129,16 @@
 #'}
 
 
-Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",para=FALSE,BF=FALSE)
+Wavelet_screaming <- function(Y,
+                              loci,
+                              bp,
+                              confounder,
+                              lev_res,
+                              sigma_b,
+                              coeftype,
+                              base_shrink,
+                              para=FALSE,
+                              BF=FALSE)
 {
 
 
@@ -139,6 +149,11 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
 
 
   # INPUT CHECKS
+  if(missing(coeftype))
+  {
+    print( "missing coeftype set as d")
+    coeftype <- "d"
+  }
    message("Input dimensions:")
   if(!is.numeric(Y) || length(Y)==0){
     stop("ERROR: Y is not a numeric vector")
@@ -152,9 +167,6 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
    		message("Continuous phenotype detected")
   	}
   }
-  if(missing(BF)) {
-    BF <- FALSE
-  }
   # Writing the design matrix
   if(missing(confounder)) {
    	message("no covariates provided, using intercept only")
@@ -164,6 +176,9 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   } else {
    	message(sprintf("%i covariates for %i samples detected", ncol(confounder), nrow(confounder)))
 	  confounder <- cbind(rep(1,length(Y)),confounder)
+  }
+  if(missing(BF)) {
+   BF <- FALSE
   }
 
 
@@ -224,131 +239,8 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   ####################################
   #Redefinition of the needed function
   ####################################
-  n_coef_wc <- function(lev_res)
-  {
-    temp <- c()
-    for(i in 0:lev_res)
-    {
-      temp <- c(temp,2^i)
-    }
-    sum(temp)
-  }
+  n_coef_wc <- sum(2^(0:4))
 
-  #Quantile transform to prevent for non normaliy distrib WCs
-  Quantile_transform  <- function(x)
-  {
-    #.ex.seed <- exists(".Random.seed")
-    #if(.ex.seed) .oldseed <- .Random.seed
-    #set.seed(1)
-    #if(.ex.seed) on.exit(.Random.seed <<- .oldseed)
-
-
-    x.rank = rank(x, ties.method="random")
-    #x.rank = rank(x, ties.method="average")
-    return(qqnorm(x.rank,plot.it = F)$x)
-  }
-
-
-
-  max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {
-    niter = 100
-    epsilon <- 10^-4
-    p_vec <- c()
-    sd_vec <- c()
-    erreur<-1+epsilon
-    eps <-10^-10#slight correction in case of non identifiable mixture
-    #prevent from having division by 0 in update parameter sum(temp)
-    betasub = my_betas
-    m0.hat <- 0
-    m1.hat <- 0
-    sigma0.hat <- null_sd
-    sigma1.hat <-alt_sd
-    #Prevent from label swapping
-    if(sigma1.hat < sigma0.hat){
-      sigma1.hat <- 3*sigma0.hat+sigma1.hat
-    }
-
-    p.hat<-0.25
-    new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
-    erreur<-1+epsilon
-    iter <- 1
-
-    while((erreur>epsilon)&(iter<=niter))
-    {
-      old.log.lik<- sum(log(p.hat*dnorm( betasub ,m1.hat,sigma1.hat)+(1-p.hat)*dnorm( betasub ,m0.hat,sigma0.hat)))
-      old.params<-new.params
-      #vecteur des pi_{i1}^{t}
-      temp<-p.hat*dnorm( betasub ,m1.hat,sigma1.hat)/(p.hat*dnorm( betasub ,m1.hat,sigma1.hat)+(1-p.hat)*dnorm( betasub ,m0.hat,sigma0.hat))
-      #Update parameter
-      p.hat<-mean(temp)
-      m1.hat<-sum(temp* betasub)/(sum(temp)+eps)
-      #m0.hat<-sum((1-temp)* betasub)/(sum(1-temp)+eps)
-      sigma1.hat<-sqrt( sum(temp*( betasub-m1.hat)^2)/(sum(temp)+eps) )+alt_sd
-      sigma0.hat<-sqrt( sum((1-temp)*( betasub-m0.hat)^2)/(sum(1-temp)+eps) )
-      #limit the decrease of sigma0.hat in case of non identifiable mixture
-      if(sigma0.hat < 0.1*null_sd ){
-        sigma0.hat <- 0.1*null_sd
-      }
-      new.params<-c(m0.hat,m1.hat,sigma0.hat,sigma1.hat,p.hat)
-      #Check end
-      new.log.lik<- sum(log(p.hat*dnorm( betasub ,m1.hat,sigma1.hat)+(1-p.hat)*dnorm( betasub ,m0.hat,sigma0.hat)))
-      erreur <- abs( new.log.lik -old.log.lik)
-      iter<-iter+1
-
-    }
-
-    #Proba Belong belong to the alternative:
-    pos.prob <- rep(NA,length(my_betas))
-    for (i in 1:length(my_betas))
-    {
-      pos.prob[i] <- p.hat*dnorm( my_betas[i] ,m1.hat,sigma1.hat)/(p.hat*dnorm( my_betas[i] ,m1.hat,sigma1.hat)+(1-p.hat)*dnorm( my_betas[i] ,m0.hat,sigma0.hat))
-
-    }
-
-    lambcom <- rep(NA,(lev_res+1))
-    p_vec   <- rep(NA,(lev_res+1))
-    for (gi in 0:lev_res) {
-
-      ####################################
-      #Soft Thresholding
-      ####################################
-      temp <- pos.prob[(2^gi):(2^(gi + 1) - 1)]- alp*sqrt(1/2^(gi -1))
-      pos.prob[(2^gi):(2^(gi + 1) - 1)] <-ifelse(temp<0,0, temp)
-      ####################################
-      #proportion of association per level
-      ####################################
-      p_vec[(gi+1)]    <-  mean(pos.prob[(2^gi):(2^(gi + 1) - 1)])
-      lambcom[(gi+1)]  <-  mean(pos.prob[(2^gi):(2^(gi + 1) - 1)]*dnorm( betasub[(2^gi):(2^(gi + 1) - 1)] ,m1.hat,sigma1.hat)-(1-pos.prob[(2^gi):(2^(gi + 1) - 1)])*dnorm( betasub[(2^gi):(2^(gi + 1) - 1)] ,m0.hat,sigma0.hat))
-    }
-    porth   <- rep(NA,(lev_res))
-    start <- 2^(1:lev_res)
-    end  <-2^((1+1):(lev_res+1))-1
-    for( gi in 0:(lev_res-1))
-    {
-      tempstart <- round(start + (gi)*(end-start)/lev_res)
-      tempend <-round(start + (gi+1)*(end-start)/lev_res)
-      ind <- c()
-      for ( j in 1:lev_res)
-      {
-        temp <- cbind(tempstart,tempend)
-        p1 <- temp[j,1]
-        p2 <- temp[j,2]
-        ind <- c(ind, p1:p2 )
-      }
-      porth[gi+1] <-  mean(pos.prob[ind])
-
-    }
-
-    #Preparing the output
-    ph <- sum(p_vec)
-    pv <- sum(porth)
-    min_ph_pv <- min( ph,pv)
-    L_h <- sum(lambcom)
-    out <- list()
-    out[[1]] <- c(L_h, min_ph_pv)
-    out[[2]] <- pos.prob
-    return( out)
-  }
 
   ###############
   #Paralelisation
@@ -475,7 +367,16 @@ Wavelet_screaming <- function(Y,loci,bp,confounder,lev_res,sigma_b,coeftype="d",
   null_sd <- sqrt(solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2]))["Y","Y"])
   alt_sd <- 100*null_sd
   #Shrinkage coefficient for the EM
-  alp <-  1/sqrt(2*log(length(Y)))
+
+  if(missing(base_shrink))
+  {
+    alp <-  1/sqrt(2*log(length(Y)))
+  }
+  else
+  {
+    alp <-  base_shrink
+  }
+
   my_betas <- as.numeric(my_betas)
   rest <- max_EM_post_Beta(my_betas=my_betas, lev_res = lev_res, null_sd =  null_sd, alt_sd = alt_sd,alp = alp)
 

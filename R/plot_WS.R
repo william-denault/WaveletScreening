@@ -11,7 +11,11 @@
 #'If a Beta is not thresholded, then the region that represents the Beta is highlighted in order to give an overview of the size and the origin of the genetic signal.
 #'@seealso \code{\link{Wavelet_screaming}}
 #'
-plot_WS <- function(res,bp,lev_res,fill,dg)
+plot_WS <- function(res,
+                    bp,
+                    lev_res,
+                    fill,
+                    dg)
 {
 
   if(missing(fill))

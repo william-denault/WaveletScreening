@@ -4,7 +4,7 @@
 #'@param lev_res the level of resolution in the wavelet transform
 #'@param null_sd starting point for sd of the null distribution in the EM procedure
 #'@param alt_sd starting point for sd of the alternative distribution in the EM procedure
-#'@param alp shrinkage parameter for computation of the test statistic
+#'@param alp shrinkage parameter for computation of the test statistic (see base_shrink)
 #'@return The two test statistics used to build the final test (i.e., L_h and min(ph,pv))
 
 max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {

@@ -1,0 +1,223 @@
+---
+title: "Wavelet Screaming on methyaltion"
+author: "William Denault"
+date: "19/02/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Preparing the data
+
+
+```{r cars}
+load("D:/Document/Serieux/Travail/Data_analysis_and_papers/Fast functional association analysis based on wavelets/additionnal_simulation_AOAS/simulated_data.Rdata")
+pheno <- as.numeric(colon.state)-1
+
+```
+
+### Definin slice 
+
+1.89 percent missigness
+```{r }
+
+tl <- split(temp.pos , cumsum(c(1, diff(temp.pos) > thresh)  ) ) #Remove case with too long distance
+
+min(lengths(tl))
+#Level of analysis 4
+tl <-  tl[-which(lengths(tl)==16)]
+tl <-  tl[-which(lengths(tl)==15)]
+
+sum(lengths(tl))/length( temp.pos)#1.89 percent missigness
+hist( lengths(tl),nclass = 100)
+
+```
+
+
+## Running Wavelet Screaming slice by slice
+```{r }
+library(WaveletScreaming)
+res <- list()
+for ( i in 1 :length(tl))
+{
+  reg_mat <- sim_methy_all[which( temp.pos  %in% tl[[i]]),]  
+  res[[i]] <- Wavelet_screaming( Y=pheno,
+                                 loci=reg_mat,
+                                 lev_res=4,coeftype = "c",
+                                 bp = temp.pos[which( temp.pos  %in% tl[[i]])],
+                                 base_shrink = 1/26,
+                                 sigma_b =200# 1/sqrt(length(pheno))
+  )
+  
+  
+}
+
+
+res <- do.call( rbind, res)
+res[1:10,]
+
+```
+
+
+
+```{r }
+library(WaveletScreaming)
+res <- list()
+for ( i in 1 :length(tl))
+{
+  reg_mat <- sim_methy_all[which( temp.pos  %in% tl[[i]]),]  
+  res[[i]] <- Wavelet_screaming( Y=pheno,
+                                 loci=reg_mat,
+                                 lev_res=4,coeftype = "c",
+                                 bp = temp.pos[which( temp.pos  %in% tl[[i]])],
+                                 base_shrink = 1/26,
+                                 sigma_b =200# 1/sqrt(length(pheno))
+  )
+  
+  
+}
+
+
+res <- do.call( rbind, res)
+res[1:10,]
+
+```
+
+
+## Simulate null distribution
+```{r }
+set.seed(1)
+Sim <- Simu_null_emp(res=res[1,],coeftype="c",
+                       lev_res = 4,
+                       base_shrink = 1/26,
+                       size=10000)
+```
+
+
+## Performing the Box-Cox transform
+```{r }
+library(EnvStats)
+
+bc_lambda <-  boxcox(-Sim[,1], optimize = TRUE)
+Sim[,1]  <-  - (((-Sim[,1])^bc_lambda$lambda) -1  )/bc_lambda$lambda
+res[,1]  <-  - (((-res[,1])^bc_lambda$lambda) -1  )/bc_lambda$lambda
+dat <- data.frame(dens = c(c(res[,1]),c(Sim[,1]))
+                  , lines = c(rep("obs", length(c(res[,1]))), rep( "sim", length(c(Sim[,1]))) ))
+#Plot.
+ggplot(dat, aes(x = dens, fill = lines)) + geom_density(alpha = 0.5)+ggtitle("Test stat density")
+
+```
+
+
+## Computing the p-values
+
+```{r }
+lambda <- Search_lambda(Sim,plot=TRUE)
+
+Th <- Sim[,c("L_h")]+lambda*Sim[,c("min_ph_pv")]
+muv <- median(Th,na.rm = TRUE)
+sdv <- mad(Th,na.rm = TRUE)
+####################################
+##Test Value of the loci to be tested
+####################################
+th <-  res[,1]+lambda*res[,2]
+
+dat <- data.frame(dens = c(c(th),c(Th))
+                  , lines = c(rep("obs", length(c(th))), rep( "sim", length(c(Th))) ))
+#Plot.
+ggplot(dat, aes(x = dens, fill = lines)) + geom_density(alpha = 0.5)+ggtitle("Test stat density")
+```
+
+
+
+
+```{r }
+
+pv <- 1-pnorm(th,mean=muv,sd=sdv)
+hist(1-pnorm(th,mean=muv,sd=sdv))
+hist(log10(1-pnorm(th,mean=muv,sd=sdv)))
+```
+
+
+
+## Loading data from Irizzary et al 2009 Nature Genetics
+```{r }
+library(readxl)
+tt <- read_excel("D:/Document/Serieux/Travail/Data_analysis_and_papers/Fast functional association analysis based on wavelets/additionnal_simulation_AOAS/41588_2009_BFng298_MOESM18_ESM.xls")
+sub <- tt[which(tt[,2]=="chr3"),]
+sub <- as.data.frame(sub
+)
+
+lstemp <- list()
+
+for (i in 1: dim(sub)[1])
+{
+  
+  lstemp[[i]] <- temp.pos[ which( (sub$start[i]-1)  < temp.pos & temp.pos < (sub$end[i] +1 ))]
+  
+}
+
+sum( lengths(lstemp)) # the list referred by Lee and Morris
+
+pos_to_detect <-  do.call( c,lstemp)#List of the CpG to detect
+
+
+```
+
+
+
+## Performing a slicing 
+
+Ensure same slicing  than before
+
+```{r }
+
+
+thresh <- 500
+
+tl <- split(temp.pos , cumsum(c(1, diff(temp.pos) > thresh)  ) ) #Remove case with too long distance
+tl <-  tl[-which(lengths(tl) <17)]#Keep only long enough sequence of CPG
+
+pos_to_detect <- pos_to_detect [which(pos_to_detect %in% do.call( c , tl))] #filtering out the CpG remove when slicing
+
+```
+
+
+## Power the if a region contains more than one CpG that is differentially methylated then it has to be deteceted
+```{r }
+#NÂ° of CpG per regions
+n_CpG_per_region <- list()
+
+
+
+
+for ( i in 1:length(tl))
+{
+  #if( length(pos_to_detect[which(pos_to_detect %in% tl[[i]])]==0) )
+  #{
+  #  
+  #  n_CpG_per_region[[i]] <- 0  
+  #}
+  #else{
+  
+  n_CpG_per_region[[i]] <- pos_to_detect[which(pos_to_detect %in% tl[[i]])]
+  
+  #}
+}
+n_CpG_per_region
+
+nCpG_reg <- lengths(n_CpG_per_region)
+indx_to_detect <- which( nCpG_reg >0)
+indx_to_detect
+indx_WS <-  which(pv < 10^(-5))
+length(indx_WS)
+sum(  indx_WS %in% indx_to_detect)
+
+which(indx_WS %in% indx_to_detect)
+
+```
+
+
+Only two missing
