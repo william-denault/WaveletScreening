@@ -2,18 +2,20 @@
 title: "Wavelet Screaming on methyaltion"
 author: "William Denault"
 date: "19/02/2020"
-output: html_document
+output:
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+setwd("D:/Document/Serieux/Travail/Data_analysis_and_papers/Fast functional association analysis based on wavelets/additionnal_simulation_AOAS")
 ```
 
 ## Preparing the data
 
 
 ```{r cars}
-load("D:/Document/Serieux/Travail/Data_analysis_and_papers/Fast functional association analysis based on wavelets/additionnal_simulation_AOAS/simulated_data.Rdata")
+load("simulated_data.Rdata")
 pheno <- as.numeric(colon.state)-1
 
 ```
@@ -22,7 +24,7 @@ pheno <- as.numeric(colon.state)-1
 
 1.89 percent missigness
 ```{r }
-
+thresh <- 500
 tl <- split(temp.pos , cumsum(c(1, diff(temp.pos) > thresh)  ) ) #Remove case with too long distance
 
 min(lengths(tl))
@@ -30,14 +32,16 @@ min(lengths(tl))
 tl <-  tl[-which(lengths(tl)==16)]
 tl <-  tl[-which(lengths(tl)==15)]
 
-sum(lengths(tl))/length( temp.pos)#1.89 percent missigness
+sum(lengths(tl))/length( temp.pos)#percent missigness
 hist( lengths(tl),nclass = 100)
 
 ```
 
 
 ## Running Wavelet Screaming slice by slice
-```{r }
+
+
+```{r message=FALSE,  echo=FALSE, results="markup"}
 library(WaveletScreaming)
 res <- list()
 for ( i in 1 :length(tl))
@@ -54,50 +58,27 @@ for ( i in 1 :length(tl))
   
 }
 
+```
 
+
+```{r echo=TRUE}
 res <- do.call( rbind, res)
 res[1:10,]
 
 ```
-
-
-
-```{r }
-library(WaveletScreaming)
-res <- list()
-for ( i in 1 :length(tl))
-{
-  reg_mat <- sim_methy_all[which( temp.pos  %in% tl[[i]]),]  
-  res[[i]] <- Wavelet_screaming( Y=pheno,
-                                 loci=reg_mat,
-                                 lev_res=4,coeftype = "c",
-                                 bp = temp.pos[which( temp.pos  %in% tl[[i]])],
-                                 base_shrink = 1/26,
-                                 sigma_b =200# 1/sqrt(length(pheno))
-  )
-  
-  
-}
-
-
-res <- do.call( rbind, res)
-res[1:10,]
-
-```
-
 
 ## Simulate null distribution
-```{r }
+```{r ,message=FALSE,}
 set.seed(1)
-Sim <- Simu_null_emp(res=res[1,],coeftype="c",
+Sim <- Simu_null_emp(res=res,coeftype="c",
                        lev_res = 4,
                        base_shrink = 1/26,
-                       size=10000)
+                       size=100000)
 ```
 
 
 ## Performing the Box-Cox transform
-```{r }
+```{r ,message=FALSE,echo=TRUE}
 library(EnvStats)
 
 bc_lambda <-  boxcox(-Sim[,1], optimize = TRUE)
@@ -113,7 +94,7 @@ ggplot(dat, aes(x = dens, fill = lines)) + geom_density(alpha = 0.5)+ggtitle("Te
 
 ## Computing the p-values
 
-```{r }
+```{r,message=FALSE }
 lambda <- Search_lambda(Sim,plot=TRUE)
 
 Th <- Sim[,c("L_h")]+lambda*Sim[,c("min_ph_pv")]
@@ -133,17 +114,17 @@ ggplot(dat, aes(x = dens, fill = lines)) + geom_density(alpha = 0.5)+ggtitle("Te
 
 
 
-```{r }
+```{r,message=FALSE }
 
 pv <- 1-pnorm(th,mean=muv,sd=sdv)
-hist(1-pnorm(th,mean=muv,sd=sdv))
+hist(1-pnorm(th,mean=muv,sd=sdv),nclass=100)
 hist(log10(1-pnorm(th,mean=muv,sd=sdv)))
 ```
 
 
 
 ## Loading data from Irizzary et al 2009 Nature Genetics
-```{r }
+```{r,message=FALSE }
 library(readxl)
 tt <- read_excel("D:/Document/Serieux/Travail/Data_analysis_and_papers/Fast functional association analysis based on wavelets/additionnal_simulation_AOAS/41588_2009_BFng298_MOESM18_ESM.xls")
 sub <- tt[which(tt[,2]=="chr3"),]
@@ -187,7 +168,7 @@ pos_to_detect <- pos_to_detect [which(pos_to_detect %in% do.call( c , tl))] #fil
 
 ## Power the if a region contains more than one CpG that is differentially methylated then it has to be deteceted
 ```{r }
-#NÂ° of CpG per regions
+#N° of CpG per regions
 n_CpG_per_region <- list()
 
 
@@ -195,29 +176,56 @@ n_CpG_per_region <- list()
 
 for ( i in 1:length(tl))
 {
-  #if( length(pos_to_detect[which(pos_to_detect %in% tl[[i]])]==0) )
-  #{
-  #  
-  #  n_CpG_per_region[[i]] <- 0  
-  #}
-  #else{
-  
   n_CpG_per_region[[i]] <- pos_to_detect[which(pos_to_detect %in% tl[[i]])]
-  
-  #}
+
 }
-n_CpG_per_region
+
 
 nCpG_reg <- lengths(n_CpG_per_region)
 indx_to_detect <- which( nCpG_reg >0)
 indx_to_detect
+
+
+```
+
+
+When using p-values 10^-5
+```{r}
 indx_WS <-  which(pv < 10^(-5))
 length(indx_WS)
 sum(  indx_WS %in% indx_to_detect)
 
 which(indx_WS %in% indx_to_detect)
+```
 
+When using p-values 10^-6
+```{r}
+indx_WS <-  which(pv < 10^(-6))
+length(indx_WS)
+sum(  indx_WS %in% indx_to_detect)
+
+which(indx_WS %in% indx_to_detect)
 ```
 
 
-Only two missing
+When using FDR
+
+```{r}
+
+fdr_regions <- p.adjust(pv, method ="BH")
+indx_WS <-  which(fdr_regions  <0.05)
+length(indx_WS)
+which(indx_WS %in% indx_to_detect)
+sum(  indx_WS %in% indx_to_detect)
+
+```
+
+```{r}
+fdr_regions <- p.adjust(pv, method ="BH")
+indx_WS <-  which(fdr_regions  <0.01)
+length(indx_WS)
+which(indx_WS %in% indx_to_detect)
+sum(  indx_WS %in% indx_to_detect)
+
+```
+
