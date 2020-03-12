@@ -4,18 +4,28 @@
 \alias{Simu_null_emp}
 \title{Simulation of the null statistics}
 \usage{
-Simu_null_emp(emp_cov, smp_size, lev_res, size, sigma_b, print = TRUE)
+Simu_null_emp(
+  res,
+  smp_size,
+  lev_res,
+  coeftype,
+  size,
+  base_shrink,
+  print = TRUE
+)
 }
 \arguments{
-\item{emp_cov}{Empirical covariance matrix of the beta values. It can be computed using several results of the wavelet screaming using the betas values for different loci. If missing the function computes an approximation of the covariance matrix, this leads to a loss of power and a more conservative test statistics.}
+\item{res}{an output of Wavelet_screaming function. The user can also provide a matrix of results of Wavelet_screaming (from the same analysis), where the results have been concatenated by row (rbind).}
 
 \item{smp_size}{Sample size from the main run of Wavelet Screaming}
 
 \item{lev_res}{the level of resolution in the wavelet transform}
 
+\item{coeftype}{type of wavelet coefficient used for the screening (choice "c" or "d"). If missing set as "d"}
+
 \item{size}{number of simulation to be performed}
 
-\item{sigma_b}{the parameter of the NIG prior used for the Betas computation.}
+\item{base_shrink}{numeric, value used in the thresholding of the proportion of assocation, if non specificed set up as 1/sqrt(2*log(sample_size)}
 
 \item{print}{logical parameter set as TRUE, if TRUE sends a message when 10\% of the simulations have been completed.}
 }

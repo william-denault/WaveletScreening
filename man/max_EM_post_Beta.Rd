@@ -15,7 +15,7 @@ max_EM_post_Beta(my_betas, lev_res, null_sd, alt_sd, alp)
 
 \item{alt_sd}{starting point for sd of the alternative distribution in the EM procedure}
 
-\item{alp}{shrinkage parameter for computation of the test statistic}
+\item{alp}{shrinkage parameter for computation of the test statistic (see base_shrink)}
 }
 \value{
 The two test statistics used to build the final test (i.e., L_h and min(ph,pv))

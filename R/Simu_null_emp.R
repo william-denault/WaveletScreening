@@ -91,7 +91,7 @@ Simu_null_emp <- function(res,
   ######################
   #Set up for simulation
   ######################
-  null_sd <-  0.1
+  null_sd <-  var_sim
   Pi_nt <- list()
   alt_sd <- 100*null_sd
   if(missing(base_shrink))

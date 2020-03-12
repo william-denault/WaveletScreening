@@ -11,7 +11,8 @@ Wavelet_screaming(
   confounder,
   lev_res,
   sigma_b,
-  coeftype = "d",
+  coeftype,
+  base_shrink,
   para = FALSE,
   BF = FALSE
 )
@@ -29,7 +30,9 @@ Wavelet_screaming(
 
 \item{sigma_b}{the parameter of the NIG prior used for the Beta computation. We advised setting this value between 0.1 and 0.2}
 
-\item{coeftype}{type of wavelet coefficient used for the screening.}
+\item{coeftype}{type of wavelet coefficient used for the screening (choice "c" or "d"). If missing set as "d"}
+
+\item{base_shrink}{numeric, value used in the thresholding of the proportion of assocation, if non specificed set up as 1/sqrt(2*log(sample_size))}
 
 \item{para}{logical parameter for parallelization, if not specified, set at FALSE by default.}
 

@@ -4,7 +4,15 @@
 \alias{Simu_null_proxy}
 \title{Simulation of the null statistics}
 \usage{
-Simu_null_proxy(Y, confounder, lev_res, size, sigma_b, print = TRUE)
+Simu_null_proxy(
+  Y,
+  confounder,
+  lev_res,
+  size,
+  sigma_b,
+  base_shrink,
+  print = TRUE
+)
 }
 \arguments{
 \item{Y}{a vector of numeric values used in the wavelet screaming function for association (a phenotype or simulated phenotype with the same distribution).}
@@ -16,6 +24,8 @@ Simu_null_proxy(Y, confounder, lev_res, size, sigma_b, print = TRUE)
 \item{size}{number of simulation to be performed}
 
 \item{sigma_b}{the parameter of the NIG prior used for the Betas computation.}
+
+\item{base_shrink}{numeric, value used in the thresholding of the proportion of assocation, if non specificed set up as 1/sqrt(2*log(sample_size)}
 
 \item{print}{logical parameter set as TRUE, if TRUE sends a message when 10\% of the simulations have been completed.}
 }

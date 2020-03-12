@@ -8,76 +8,107 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-setwd("D:/Document/Serieux/Travail/Data_analysis_and_papers/Fast functional association analysis based on wavelets/additionnal_simulation_AOAS")
+
 ```
 
 ## Preparing the data
 
+Loading the data and recoding the phenotype from factor to numeric.
+
 
 ```{r cars}
+
 load("simulated_data.Rdata")
+colon.state[1:4]
 pheno <- as.numeric(colon.state)-1
+pheno[1:4]
 
 ```
 
-### Definin slice 
+The data are compound of two more element:
+* The base pair position of each CpG
+* The individual CpG level (in M values)
+```{r}
+temp.pos[1:10]#the base pair position of each CpG
+length(temp.pos)#total number of CpG
+dim(sim_methy_all)#lines= CpG level, column individual
+sim_methy_all[1:10,]
+```
 
-1.89 percent missigness
+
+
+
+
+### Defining slice 
+
+Here we divide the data in regions that have at least 17 CpGs separated by a maximum distance of 500 bp. This results to a missigness rate of 1.89 %
 ```{r }
 thresh <- 500
 tl <- split(temp.pos , cumsum(c(1, diff(temp.pos) > thresh)  ) ) #Remove case with too long distance
 
-min(lengths(tl))
 #Level of analysis 4
-tl <-  tl[-which(lengths(tl)==16)]
-tl <-  tl[-which(lengths(tl)==15)]
-
+tl <-  tl[-which(lengths(tl)< 17)]#List of the position of CpG that we will later analyse
 sum(lengths(tl))/length( temp.pos)#percent missigness
-hist( lengths(tl),nclass = 100)
+hist( lengths(tl),nclass = 100, main="Histogram of the number of CpG per regions")
 
 ```
 
 
-## Running Wavelet Screaming slice by slice
+## Running Wavelet Screaming region by region
 
-
-```{r message=FALSE,  echo=FALSE, results="markup"}
+In this section we run Wavelet Screaming on each regions speratly. This takes about 3/4 minutes when using a single CPU. 
+```{r message=FALSE}
 library(WaveletScreaming)
+tt <- proc.time()
 res <- list()
 for ( i in 1 :length(tl))
 {
-  reg_mat <- sim_methy_all[which( temp.pos  %in% tl[[i]]),]  
+  reg_mat <- sim_methy_all[which( temp.pos  %in% tl[[i]]),] #Select CpG in region i
+  bp <- temp.pos[which( temp.pos  %in% tl[[i]])]#Correspond to the base position of the CpG of region i 
   res[[i]] <- Wavelet_screaming( Y=pheno,
                                  loci=reg_mat,
-                                 lev_res=4,coeftype = "c",
-                                 bp = temp.pos[which( temp.pos  %in% tl[[i]])],
+                                 lev_res=4,
+                                 coeftype = "c",
+                                 bp = bp,
                                  base_shrink = 1/26,
-                                 sigma_b =200# 1/sqrt(length(pheno))
+                                 sigma_b =200
   )
   
   
 }
 
+
+proc.time()  -tt #total running time
 ```
 
-
+We concatenate the results of Wavelet Screaming in one data frame. 
 ```{r echo=TRUE}
 res <- do.call( rbind, res)
 res[1:10,]
 
 ```
 
-## Simulate null distribution
+## Simulation of the null distribution
+
+In order to assess the significance of each regions, we simulate the null distribution of the test statistic. Below we display how to simulate this distribution
 ```{r ,message=FALSE,}
 set.seed(1)
-Sim <- Simu_null_emp(res=res,coeftype="c",
+#Simulation function using the same parameter as used in the Wavelet_screaming function
+tt <- proc.time()
+Sim <- Simu_null_emp(res=res,
+                       coeftype="c",
                        lev_res = 4,
                        base_shrink = 1/26,
-                       size=100000)
+                       size=100000#Number of simulation required
+                     )
+proc.time()  -tt #total running time
+plot( Sim[,1], Sim[,2])
 ```
 
 
 ## Performing the Box-Cox transform
+
+As explain in the article, the distribution of L~h~ might not be Gaussian when analysing data using low depth. Below, we display how to perform a Box-Cox transform on the simulations of the test statistic under the H~0~ .
 ```{r ,message=FALSE,echo=TRUE}
 library(EnvStats)
 
@@ -86,52 +117,56 @@ Sim[,1]  <-  - (((-Sim[,1])^bc_lambda$lambda) -1  )/bc_lambda$lambda
 res[,1]  <-  - (((-res[,1])^bc_lambda$lambda) -1  )/bc_lambda$lambda
 dat <- data.frame(dens = c(c(res[,1]),c(Sim[,1]))
                   , lines = c(rep("obs", length(c(res[,1]))), rep( "sim", length(c(Sim[,1]))) ))
-#Plot.
-ggplot(dat, aes(x = dens, fill = lines)) + geom_density(alpha = 0.5)+ggtitle("Test stat density")
-
 ```
 
 
 ## Computing the p-values
 
-```{r,message=FALSE }
-lambda <- Search_lambda(Sim,plot=TRUE)
+When the Box-Cox transform is done, we can then compute the pvalue of each region as follow.
 
-Th <- Sim[,c("L_h")]+lambda*Sim[,c("min_ph_pv")]
-muv <- median(Th,na.rm = TRUE)
+```{r,message=FALSE }
+lambda <- Search_lambda(Sim,plot=TRUE)#optimizing the lambda* value
+
+Th <- Sim[,c("L_h")]+lambda*Sim[,c("min_ph_pv")] #Computing the test statistic null distribution
+muv <- median(Th,na.rm = TRUE) #estimating the parameter of the null distribution
 sdv <- mad(Th,na.rm = TRUE)
 ####################################
 ##Test Value of the loci to be tested
 ####################################
-th <-  res[,1]+lambda*res[,2]
+th <-  res[,1]+lambda*res[,2]#Computing the test statistic
 
+##########################
+##Plot of two distribution
+##########################
 dat <- data.frame(dens = c(c(th),c(Th))
                   , lines = c(rep("obs", length(c(th))), rep( "sim", length(c(Th))) ))
-#Plot.
+
 ggplot(dat, aes(x = dens, fill = lines)) + geom_density(alpha = 0.5)+ggtitle("Test stat density")
 ```
 
-
-
+Here we see the null distribution of the test statistic and on the right side of the plot the associated regions.
 
 ```{r,message=FALSE }
-
+#Computing the p-value
 pv <- 1-pnorm(th,mean=muv,sd=sdv)
-hist(1-pnorm(th,mean=muv,sd=sdv),nclass=100)
-hist(log10(1-pnorm(th,mean=muv,sd=sdv)))
+hist(1-pnorm(th,mean=muv,sd=sdv),nclass=100, main="Histogramm of the pvalues")
+hist(log10(1-pnorm(th,mean=muv,sd=sdv)),main ="Histogramm of the Log10 pvalues")
 ```
 
 
 
 ## Loading data from Irizzary et al 2009 Nature Genetics
+
+The data can be found at https://www.nature.com/articles/ng.298 as supplementary material
+
 ```{r,message=FALSE }
 library(readxl)
-tt <- read_excel("D:/Document/Serieux/Travail/Data_analysis_and_papers/Fast functional association analysis based on wavelets/additionnal_simulation_AOAS/41588_2009_BFng298_MOESM18_ESM.xls")
-sub <- tt[which(tt[,2]=="chr3"),]
-sub <- as.data.frame(sub
-)
+tt <- read_excel("41588_2009_BFng298_MOESM18_ESM.xls")
+sub <- tt[which(tt[,2]=="chr3"),]#Only selecting Chromosome 3
+sub <- as.data.frame(sub)
+head(sub) #data frame with starting and ending position of each DMR we are trying to detect.
 
-lstemp <- list()
+lstemp <- list() #
 
 for (i in 1: dim(sub)[1])
 {
@@ -140,8 +175,7 @@ for (i in 1: dim(sub)[1])
   
 }
 
-sum( lengths(lstemp)) # the list referred by Lee and Morris
-
+sum( lengths(lstemp)) # number of CpG to detect
 pos_to_detect <-  do.call( c,lstemp)#List of the CpG to detect
 
 
@@ -151,11 +185,9 @@ pos_to_detect <-  do.call( c,lstemp)#List of the CpG to detect
 
 ## Performing a slicing 
 
-Ensure same slicing  than before
+Ensure same slicing as before
 
 ```{r }
-
-
 thresh <- 500
 
 tl <- split(temp.pos , cumsum(c(1, diff(temp.pos) > thresh)  ) ) #Remove case with too long distance
@@ -166,13 +198,12 @@ pos_to_detect <- pos_to_detect [which(pos_to_detect %in% do.call( c , tl))] #fil
 ```
 
 
-## Power the if a region contains more than one CpG that is differentially methylated then it has to be deteceted
+## Power
+
+If a region contains more than one CpG that is differentially methylated then it has to be deteceted
 ```{r }
 #N° of CpG per regions
 n_CpG_per_region <- list()
-
-
-
 
 for ( i in 1:length(tl))
 {
@@ -182,50 +213,49 @@ for ( i in 1:length(tl))
 
 
 nCpG_reg <- lengths(n_CpG_per_region)
-indx_to_detect <- which( nCpG_reg >0)
+indx_to_detect <- which( nCpG_reg >0)#List of the regions to detect
 indx_to_detect
 
 
 ```
 
 
-When using p-values 10^-5
+
+Regions detected
 ```{r}
+type <- c("pv", "pv", "fdr", "fdr")
+threshold <- c("e-5", "e-6", "5%", "1%")
+detected_reg <- c()
+tru_reg <- c()
+#Regions detected
+
+#When using p-values 10^-5
 indx_WS <-  which(pv < 10^(-5))
-length(indx_WS)
-sum(  indx_WS %in% indx_to_detect)
+detected_reg <- c( detected_reg ,length(indx_WS))
+tru_reg <- c( tru_reg , length(which(indx_WS %in% indx_to_detect) ) )
 
-which(indx_WS %in% indx_to_detect)
-```
-
-When using p-values 10^-6
-```{r}
+#When using p-values 10^-6
 indx_WS <-  which(pv < 10^(-6))
-length(indx_WS)
-sum(  indx_WS %in% indx_to_detect)
-
-which(indx_WS %in% indx_to_detect)
-```
-
-
-When using FDR
-
-```{r}
-
+detected_reg <- c( detected_reg ,length(indx_WS))
+tru_reg <- c( tru_reg , length(which(indx_WS %in% indx_to_detect) ) )
 fdr_regions <- p.adjust(pv, method ="BH")
+
+#When using FDR at 5%
 indx_WS <-  which(fdr_regions  <0.05)
-length(indx_WS)
-which(indx_WS %in% indx_to_detect)
-sum(  indx_WS %in% indx_to_detect)
+detected_reg <- c( detected_reg ,length(indx_WS))
+tru_reg <- c( tru_reg , length(which(indx_WS %in% indx_to_detect) ) )
 
-```
-
-```{r}
-fdr_regions <- p.adjust(pv, method ="BH")
+#When using FDR at 1%
 indx_WS <-  which(fdr_regions  <0.01)
-length(indx_WS)
-which(indx_WS %in% indx_to_detect)
-sum(  indx_WS %in% indx_to_detect)
+detected_reg <- c( detected_reg ,length(indx_WS))
+tru_reg <- c( tru_reg , length(which(indx_WS %in% indx_to_detect) ) )
 
+#Summary 
+df_out <- data.frame(type=type, threshold = threshold, nb_detected_region= detected_reg, nb_true_regions= tru_reg )
+```
+```{r}
+df_out
 ```
 
+
+df_out summaries the number of regions detected using different criterion as well as the number of truly associated regions.
