@@ -71,7 +71,8 @@ for ( i in 1 :length(tl))
                                  coeftype = "c",
                                  bp = bp,
                                  base_shrink = 1/26,
-                                 sigma_b =200
+                                 sigma_b =200,
+                                 verbose = FALSE
   )
   
   

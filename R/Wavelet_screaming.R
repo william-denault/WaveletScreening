@@ -85,7 +85,7 @@
 #'#Wavelet screaming
 #'##################
 #'res <- Wavelet_screaming( Y,loci=genotype,bp=my_bp,
-#'                          lev_res=6,sigma_b = 0.2)
+#'                          lev_res=6)
 #'res
 #'#Value of the test statistics
 #'res[c("L_h","min_ph_pv")]
@@ -95,7 +95,7 @@
 #'
 #'#Simulate the null distribution using proxy covariance matrix
 #'
-#'Sim <- Simu_null_proxy(Y,lev_res = 6,sigma_b = 0.2,size=10000)
+#'Sim <- Simu_null_proxy(Y,lev_res = 6 ,size=10000)
 #'head(Sim)
 #'#Calibration of the hyperparameter
 #'lambda <- Search_lambda(Sim,plot=TRUE)

@@ -6,7 +6,7 @@
 #'@param size number of simulation to be performed
 #'@param base_shrink numeric, value used in the thresholding of the proportion of assocation, if non specificed set up as 1/sqrt(2*log(sample_size)
 #'@param sigma_b the parameter of the NIG prior used for the Betas computation.
-#'@param print logical parameter set as TRUE, if TRUE sends a message when 10\% of the simulations have been completed.
+#'@param verbose logical parameter, set as TRUE by default. ID
 #'@return The simulation under the null of the two test statistics used to build the final test (i.e., L_h and min(ph,pv))
 #'@examples \dontrun{
 #'Y <- rnorm(4000)
@@ -16,11 +16,28 @@ Simu_null_proxy <- function(Y,
                             confounder,
                             lev_res,
                             size,
-                            sigma_b,
+                            sigma_b=NA,
                             base_shrink,
-                            print=TRUE)
+                            verbose=TRUE)
 {
   smp_size= length(Y)
+
+  if( is.na(sigma_b))
+  {
+    if(verbose)
+    {
+      message("No prior size provided, using frequentist modeling")
+    }
+    analysis_type <- "Frequentist"
+  }
+  if( !is.na(sigma_b))
+  {
+    if(verbose)
+    {
+      message("Using Bayesian modeling")
+    }
+    analysis_type <- "Bayesian"
+  }
   Quantile_transform  <- function(x)
   {
 
@@ -29,18 +46,30 @@ Simu_null_proxy <- function(Y,
     return(qqnorm(x.rank,plot.it = F)$x)
   }
   # INPUT CHECKS
-  print("Input dimensions:")
+  if(verbose)
+  {
+   print("Input dimensions:")
+  }
   if(!is.numeric(Y) || length(Y)==0){
     stop("ERROR: Y is not a numeric vector")
   } else {
-    print(sprintf("%i phenotypes detected", length(Y)))
+    if(verbose)
+    {
+      print(sprintf("%i phenotypes detected", length(Y)))
+    }
+
     if(all(Y %in% c(0,1))){
+      if(verbose)
+      {
       print("Binary phenotype detected")
+      }
     } else if(!is.vector(Y)){
       stop("ERROR: Y is not a vector. Multi-phenotype analysis not implemented yet.")
     } else {
-      print("Continuous phenotype detected")
-
+      if(verbose)
+      {
+        print("Continuous phenotype detected")
+      }
     }
   }
   #####################################
@@ -52,7 +81,10 @@ Simu_null_proxy <- function(Y,
   ######################################
   if(missing(confounder))
   {
-    print("no covariates provided, using intercept only")
+    if(verbose)
+    {
+     print("no covariates provided, using intercept only")
+    }
     Dmat <- cbind(rep(1,length(Y)),Y)
     Dmat <- as.matrix(Dmat)
   }
@@ -61,7 +93,10 @@ Simu_null_proxy <- function(Y,
     if(nrow(confounder)!=length(Y)) {
       stop("ERROR: number of samples in Y and confounder does not match")
     } else {
-      print(sprintf("%i covariates for %i samples detected", ncol(confounder), nrow(confounder)))
+      if(verbose)
+      {
+       print(sprintf("%i covariates for %i samples detected", ncol(confounder), nrow(confounder)))
+      }
       confounder <- cbind(rep(1,length(Y)),confounder)
       Dmat <- cbind(confounder,Y)
       Dmat <- as.matrix(Dmat)
@@ -75,13 +110,23 @@ Simu_null_proxy <- function(Y,
 
   Dmat <- as.matrix(Dmat)
 
-  null_sd <- sqrt(solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2]))["Y","Y"])
+  if( analysis_type == "Bayesian" )
+  {
+    null_sd <- sqrt(solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2]))["Y","Y"])
+  }
+  if( analysis_type == "Frequentist" )
+  {
+    null_sd <- sqrt(solve(t(Dmat) %*% Dmat )["Y","Y"])
+  }
 
 
   ##################################
   #Computing proxy covariance matrix
   ##################################
-  print("Empirical Covariance missing computing proxy covariance for simulation")
+  if(verbose)
+  {
+   print("Empirical Covariance missing computing proxy covariance for simulation")
+  }
   lev_res <-lev_res
   coeftype="c"
   my_wavproc <- function(y)
@@ -119,8 +164,10 @@ Simu_null_proxy <- function(Y,
   Gen_W_trans = apply(Gen_W_trans, 1, Quantile_transform)
   #Compute proxy for empirical covariance matrix
   emp_cov <- (cov(Gen_W_trans))*(null_sd^2)
-  print("Proxy Covariance computed")
-
+  if(verbose)
+  {
+    print("Proxy Covariance computed")
+  }
 
 
 
@@ -138,8 +185,10 @@ Simu_null_proxy <- function(Y,
   {
     alp <-  base_shrink
   }
-
-  print("Simulation of test statistics")
+  if(verbose)
+  {
+   print("Simulation of test statistics")
+  }
   temp <- seq(from=1,to=size,by=size/10)[-1]-1
   out <- list()
   my_f <- function(y)
@@ -147,7 +196,7 @@ Simu_null_proxy <- function(Y,
     pis <- max_EM_post_Beta(y, lev_res = lev_res , null_sd = null_sd ,alt_sd = alt_sd,alp=alp)[[1]]
     return(pis)
   }
-  if(print==TRUE)
+  if(verbose)
   {
 
     for (i in 1:10)
@@ -158,7 +207,7 @@ Simu_null_proxy <- function(Y,
     }
 
   }
-  if(print==FALSE)
+  if(verbose==FALSE)
   {
     for (i in 1:10)
     {
