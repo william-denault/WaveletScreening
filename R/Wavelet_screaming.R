@@ -10,10 +10,12 @@
 #'@param base_shrink numeric, value used in the thresholding of the proportion of assocation, if non specificed set up as 1/sqrt(2*log(sample_size))
 #'@param para logical parameter for parallelization, if not specified, set at FALSE by default.
 #'@param BF logical parameter for obtainning the Bayes Factor of the wavelet regression. If not specified, set at FALSEby default.
+#'@param verbose logical parameter, set as TRUE by default. ID
 #'@details The Wavelet_screaming function computes the likelihood ratio used for testing the significance of a genetic region. In addition, it computes
 #'the proportion of wavelet coefficients associated by the level of resolution and the Beta used for this estimation. All the details
 #'of the computation can be found in our paper, preliminarily titled "Wavelet Screaming: a novel look to GWAS data.".
 #'@return A named vector. The first position contains the estimated value of the Lambda statistics. The next positions of the vector are the computed proportion of associations per level of resolution.
+#'@examples \dontrun{
 #'set.seed(1)
 #'#########################################
 #'#Generate a randomly sampled SNP from a locus of size=1Mb
@@ -134,57 +136,108 @@ Wavelet_screaming <- function(Y,
                               bp,
                               confounder,
                               lev_res,
-                              sigma_b,
+                              sigma_b=NA,
                               coeftype,
                               base_shrink,
                               para=FALSE,
-                              BF=FALSE)
+                              BF=FALSE,
+                              verbose=TRUE)
 {
 
 
 
   #To ensure the length not to be 0
   Y <- as.vector(Y)
+
+  if( is.na(sigma_b))
+  {
+    if(verbose)
+    {
+     message("No prior size provided, using frequentist modeling")
+    }
+    analysis_type <- "Frequentist"
+  }
+  if( !is.na(sigma_b))
+  {
+    if(verbose)
+    {
+      message("Using Bayesian modeling")
+    }
+    analysis_type <- "Bayesian"
+  }
   sigma_b <- sigma_b
 
 
   # INPUT CHECKS
   if(missing(coeftype))
   {
-    print( "missing coeftype set as d")
+    if(verbose)
+    {
+      print( "missing coeftype set as d")
+    }
     coeftype <- "d"
   }
-   message("Input dimensions:")
+  if(verbose)
+  {
+    message("Input dimensions:")
+  }
   if(!is.numeric(Y) || length(Y)==0){
     stop("ERROR: Y is not a numeric vector")
   } else {
-   	message(sprintf("%i phenotypes detected", length(Y)))
+    if(verbose)
+    {
+      	message(sprintf("%i phenotypes detected", length(Y)))
+    }
   	if(all(Y %in% c(0,1))){
-   		message("Binary phenotype detected")
+  	  if(verbose)
+  	  {
+   	  	message("Binary phenotype detected")
+  	  }
   	} else if(!is.vector(Y)){
   		stop("ERROR: Y is not a vector. Multi-phenotype analysis not implemented yet.")
   	} else {
-   		message("Continuous phenotype detected")
+  	  if(verbose)
+  	  {
+   		  message("Continuous phenotype detected")
+  	  }
   	}
   }
   # Writing the design matrix
   if(missing(confounder)) {
-   	message("no covariates provided, using intercept only")
-  	confounder <- data.frame(confounding=rep(1,length(Y)) )
+    if(verbose)
+    {
+   	  message("no covariates provided, using intercept only")
+
+    }
+    confounder <- data.frame(confounding=rep(1,length(Y)) )
   } else if(nrow(confounder)!=length(Y)) {
     stop("ERROR: number of samples in Y and confounder does not match")
   } else {
-   	message(sprintf("%i covariates for %i samples detected", ncol(confounder), nrow(confounder)))
+    if(verbose)
+    {
+   	 message(sprintf("%i covariates for %i samples detected", ncol(confounder), nrow(confounder)))
+    }
 	  confounder <- cbind(rep(1,length(Y)),confounder)
   }
+
+
+
+
+
   if(missing(BF)) {
    BF <- FALSE
+  }
+  if(!missing(BF) && missing(sigma_b)) {
+    stop("ERROR: Cannot compute Bayes Factors if no prior provided")
   }
 
 
   # Check genotype matrix
   if(is.data.frame(loci)){
-   	message("Converting genotype data to matrix")
+    if(verbose)
+    {
+   	  message("Converting genotype data to matrix")
+    }
   	loci <- as.matrix(loci)
   }
   if(missing(loci) || !is.numeric(loci)){
@@ -192,14 +245,20 @@ Wavelet_screaming <- function(Y,
   } else if(ncol(loci)!=length(Y)){
     stop("ERROR: number of samples in Y and loci does not match")
   } else {
-   	message(sprintf("%i SNPs for %i samples detected", nrow(loci), ncol(loci)))
+    if(verbose)
+    {
+    	message(sprintf("%i SNPs for %i samples detected", nrow(loci), ncol(loci)))
+    }
   }
 
   # Check position vector
   if(!is.numeric(bp) || !is.vector(bp)){
     stop("ERROR: must provide numeric position vector")
   } else {
-   	message(sprintf("positions for %i SNPs read", length(bp)))
+    if(verbose)
+    {
+   	  message(sprintf("positions for %i SNPs read", length(bp)))
+    }
   }
 
   # Clean missing samples from all inputs
@@ -215,10 +274,11 @@ Wavelet_screaming <- function(Y,
   Y <- Y[nonmissing_index]
   confounder <- confounder[nonmissing_index,]
   loci <- loci[,nonmissing_index]
-
+  if(verbose)
+  {
    message(paste("N individuals analysed = ", dim(loci)[2],
    			", N SNPs analysed = ",dim(loci)[1]))
-
+  }
   # workaround for git issue #1 - mysteriously empty slices
   if(is.null(dim(loci)) || dim(loci)[1] < 2^lev_res || dim(loci)[2] < 2){
 	warning("not enough genotypes remaining, returning empty output")
@@ -253,7 +313,11 @@ Wavelet_screaming <- function(Y,
   ###################
   #Wavelet processing
   ###################
-   message("Wavelet processing")
+  if( verbose)
+  {
+    message("Wavelet processing")
+  }
+
 
   Time01 <- (bp- min(bp))/(max(bp)-min(bp))
   my_wavproc <- function(y)
@@ -301,22 +365,43 @@ Wavelet_screaming <- function(Y,
   #Modeling
   ##########
 
-
-  message("Computing Beta values")
-  betas_f <- function(y)
+  if(verbose)
   {
-
-    confounder <- data.frame(confounder)
-    pc <- dim(confounder)[2]
-    Dmat <- cbind(confounder,Y)
-    Dmat <- as.matrix(Dmat)
-
-    res <- solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2])) %*% t(Dmat)%*% y
-    index <- pc+1
-
-    return(res[index,1])
+   message("Computing Beta values")
   }
 
+  if( analysis_type == "Bayesian" )
+    {
+     betas_f <- function(y)
+     {
+
+       confounder <- data.frame(confounder)
+       pc <- dim(confounder)[2]
+       Dmat <- cbind(confounder,Y)
+       Dmat <- as.matrix(Dmat)
+
+       res <- solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2])) %*% t(Dmat)%*% y
+       index <- pc+1
+
+       return(res[index,1])
+     }
+   }
+  if(analysis_type =="Frequentist")
+  {
+    betas_f <- function(y)
+    {
+
+      confounder <- data.frame(confounder)
+      pc <- dim(confounder)[2]
+      Dmat <- cbind(confounder,Y)
+      Dmat <- as.matrix(Dmat)
+
+      res <- solve(t(Dmat) %*% Dmat ) %*% t(Dmat)%*% y
+      index <- pc+1
+
+      return(res[index,1])
+    }
+  }
 
   if(para==TRUE)
   {
@@ -329,8 +414,10 @@ Wavelet_screaming <- function(Y,
   }
 
   if(BF ==TRUE)
-  {
-    message("Computing Bayes Factors")
+  {  if(verbose)
+    {
+     message("Computing Bayes Factors")
+    }
     W <- as.matrix(confounder, ncol=ncol(confounder))
     n = nrow(W)
     q = ncol(W)
@@ -359,12 +446,25 @@ Wavelet_screaming <- function(Y,
   ###########################
   #Computation test statstics
   ###########################
-  message("Post-processing")
+  if(verbose)
+  {
+    message("Post-processing")
+  }
+
 
   Dmat <- cbind(confounder,Y)
   Dmat <- as.matrix(Dmat)
 
-  null_sd <- sqrt(solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2]))["Y","Y"])
+  if( analysis_type == "Bayesian" )
+  {
+    null_sd <- sqrt(solve(t(Dmat) %*% Dmat + diag(1/sigma_b/sigma_b,dim(Dmat)[2]))["Y","Y"])
+  }
+  if( analysis_type == "Frequentist" )
+  {
+    null_sd <- sqrt(solve(t(Dmat) %*% Dmat )["Y","Y"])
+  }
+
+
   alt_sd <- 100*null_sd
   #Shrinkage coefficient for the EM
 

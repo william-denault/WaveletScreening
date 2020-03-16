@@ -14,7 +14,8 @@ Wavelet_screaming(
   coeftype,
   base_shrink,
   para = FALSE,
-  BF = FALSE
+  BF = FALSE,
+  verbose = TRUE
 )
 }
 \arguments{
@@ -37,9 +38,11 @@ Wavelet_screaming(
 \item{para}{logical parameter for parallelization, if not specified, set at FALSE by default.}
 
 \item{BF}{logical parameter for obtainning the Bayes Factor of the wavelet regression. If not specified, set at FALSEby default.}
+
+\item{verbose}{logical parameter, set as TRUE by default. ID}
 }
 \value{
-
+A named vector. The first position contains the estimated value of the Lambda statistics. The next positions of the vector are the computed proportion of associations per level of resolution.
 }
 \description{
 Perform a wavelet screening of a locus for a given phenotype and a specified level of resolution
@@ -48,4 +51,120 @@ Perform a wavelet screening of a locus for a given phenotype and a specified lev
 The Wavelet_screaming function computes the likelihood ratio used for testing the significance of a genetic region. In addition, it computes
 the proportion of wavelet coefficients associated by the level of resolution and the Beta used for this estimation. All the details
 of the computation can be found in our paper, preliminarily titled "Wavelet Screaming: a novel look to GWAS data.".
+}
+\examples{
+\dontrun{
+set.seed(1)
+#########################################
+#Generate a randomly sampled SNP from a locus of size=1Mb
+#########################################
+
+#5000 Randomly choosen basepairs
+my_bp <- sort(sample(1:1000000, size=5000,replace = FALSE))
+#############################
+#Three different bump signals
+#############################
+my_functions <-data.frame(f0 = c(rep(0,400000),rep(0,200000),rep(0,400000)),
+                         f1 = c(rep(0,400000),rep(1,200000),rep(0,400000)) ,
+                         f2=c(rep(0,400000),rep(2,200000),rep(0,400000)))
+
+
+library(gridExtra)
+###########################
+#Minor allele frequency 30\%
+###########################
+MAF=0.3
+sampl_schem <- c((1-MAF)^2,2*MAF*(1-MAF),MAF^2)
+#######################################
+#Sampling at Hardy Weinberg equilibrium
+#######################################
+#Assigning class
+
+#sample size =4000
+n_size=4000
+type_fn <-sample(0:2,replace = TRUE,size=n_size,  prob=  sampl_schem  )
+
+
+genotype <-  matrix(my_functions[my_bp,2 ], ncol=1 ) \%*\%t(matrix(type_fn,ncol=1))
+genotype <- genotype+ rnorm(dim(genotype)[1]*dim(genotype)[2],sd=0.1)
+#dim(genotype)= nSNP, nind
+
+###############################################################
+#Generate a phenotype with variance explained by genotype =0.5\%
+###############################################################
+varexp=0.005
+var_noise <- (1-varexp)*var(sample(0:2,replace = TRUE,size=10000,
+                                  prob=sampl_schem ))/varexp
+Y <-  rnorm(n=n_size,sd=sqrt(var_noise)) +type_fn
+df <- data.frame(y=Y,genotype =factor(type_fn))
+P1 <- ggplot(df,aes(y=y,x=genotype))+
+ geom_boxplot()+
+ xlab("Type of genotype")+
+ theme(axis.text=element_text(size=12),
+       axis.title=element_text(size=14,face="bold"))+
+ ylab("Simulated Phenotype")+
+ theme_bw()+
+ ggtitle("Variation of the phenotype\ndepending of the genotype, \nVariance explained =0.5\%")
+
+df <- data.frame(bp= rep(my_bp,3),y=c(my_functions[my_bp,1],my_functions[my_bp,2],my_functions[my_bp,3]),
+                mycol = factor(c(rep("f0",length(my_bp)),rep("f1",length(my_bp)),rep("f2",length(my_bp))) ) )
+
+P2 <- ggplot(df,aes(y=y,x=bp,color=mycol))+
+ geom_point(size=1)+
+ xlab("Base pair")+
+ ylab("Number of variants")+
+ theme_bw()+
+ theme(legend.title=element_blank())+
+ ggtitle("Three different kind of genotype signal")
+
+grid.arrange(P1,P2,ncol=2)
+
+##################
+#Wavelet screaming
+##################
+res <- Wavelet_screaming( Y,loci=genotype,bp=my_bp,
+                         lev_res=6,sigma_b = 0.2)
+res
+#Value of the test statistics
+res[c("L_h","min_ph_pv")]
+#############
+#Significance
+#############
+
+#Simulate the null distribution using proxy covariance matrix
+
+Sim <- Simu_null_proxy(Y,lev_res = 6,sigma_b = 0.2,size=10000)
+head(Sim)
+#Calibration of the hyperparameter
+lambda <- Search_lambda(Sim,plot=TRUE)
+
+Th <- Sim[,c("L_h")]+lambda*Sim[,c("min_ph_pv")]
+muv <- median(Th,na.rm = TRUE)
+sdv <- mad(Th,na.rm = TRUE)
+####################################
+#Test Value of the loci to be tested
+####################################
+th <-  res[c("L_h")]+lambda*res["min_ph_pv"]
+#######
+#P-value
+#######
+1-pnorm(th,mean=muv,sd=sdv)
+
+df <- data.frame(Th = Th,type = factor( c(rep("Null",length(Th)))) )
+ggplot(df,aes(Th,fill=type))+
+ xlim(c(min(c(Th,th)),max(Th,th)))+
+ geom_density()+
+ guides(fill=FALSE)+
+ geom_point(aes(x=th, y=0), colour="red")+theme(legend.position="none")+
+ geom_text(label="Value of the test statistics", x=th, y=0.001)+
+ geom_text(label="Null distribution", x=mean(Th), y=0.001)+
+ theme_bw()
+##############
+#Visualisation
+##############
+bp <- c(min(my_bp),max(my_bp))
+plot_WS(res=res,bp=bp,lev_res=6)
+
+
+}
 }
