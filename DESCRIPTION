@@ -1,10 +1,10 @@
-Package: WaveletScreaming
+Package: WaveletScreening
 Type: Package
-Title: A package to perform Wavelet Screaming on GWAS data 
-Version: 0.1.33
+Title: A package to perform Wavelet Screening on GWAS data 
+Version: 0.1.34
 Author: William Denault
 Maintainer: William Denault <william.denault@gmail.com>
-Description: Functions to perform genome wide screeening association through wavelet transform
+Description: Functions to perform genome wide screening association through wavelet transform
 License: GPL (>= 2)
 Encoding: UTF-8
 LazyData: true

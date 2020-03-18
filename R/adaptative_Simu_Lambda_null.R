@@ -5,7 +5,7 @@
 #'@param lambda the lambda parameter of the null distribution of the Bayes Factor.
 #'@param lev_res the maximum level of resolution needed.
 #'@param ncp the lambda parameter of the null distribution of the Bayes Factor, if not specified set at 0.
-#'@details Use the theoretical null distribution of the generated Bayes factor to perform simulation of null distriution of the test statistics of the Wavelet screaming procedure.
+#'@details Use the theoretical null distribution of the generated Bayes factor to perform simulation of null distriution of the test statistics of the Wavelet screening procedure.
 #'@references Quan Zhou and Yongtao Guan, On the Null Distribution of Bayes Factors in linear Regression, Journal of the American Statistical Association, 518, 2017.
 
 

@@ -1,19 +1,19 @@
-#'@title Main function to perform wavelet screaming
+#'@title Main function to perform wavelet screening
 #'@description  Perform a wavelet screening of a locus for a given phenotype and a specified level of resolution
 #'@param Y phenotype vector has to be numeric. For case-control  data, code it as 0 and 1. Multiple label phenotypes, e.g., ABO blood groups, will be implemented in the next version.
 #'@param loci genotype matrix (either data.frame or numeric matrix). Lines=SNPs in increasing order in terms of base pair, columns=individuals. No missing values allowed.
 #'@param bp vector of the base pairs positions. It has to be in the same order and length than the locus line order/length.
 #'@param confounder the confounding matrix with the same sample order as Y. The intercept should not be included if missing will generate an intercept matrix.
 #'@param lev_res the maximum level of resolution needed.
-#'@param sigma_b the parameter of the NIG prior used for the Beta computation. We advised setting this value between 0.1 and 0.2
+#'@param sigma_b the parameter of the NIG prior used for the Beta computation, set as NA by default. If not provided perform a frequentist modeling. We advised setting this value between 0.1 and 0.2
 #'@param coeftype type of wavelet coefficient used for the screening (choice "c" or "d"). If missing set as "d"
 #'@param base_shrink numeric, value used in the thresholding of the proportion of assocation, if non specificed set up as 1/sqrt(2*log(sample_size))
 #'@param para logical parameter for parallelization, if not specified, set at FALSE by default.
 #'@param BF logical parameter for obtainning the Bayes Factor of the wavelet regression. If not specified, set at FALSEby default.
 #'@param verbose logical parameter, set as TRUE by default. ID
-#'@details The Wavelet_screaming function computes the likelihood ratio used for testing the significance of a genetic region. In addition, it computes
+#'@details The Wavelet_screening function computes the likelihood ratio used for testing the significance of a genetic region. In addition, it computes
 #'the proportion of wavelet coefficients associated by the level of resolution and the Beta used for this estimation. All the details
-#'of the computation can be found in our paper, preliminarily titled "Wavelet Screaming: a novel look to GWAS data.".
+#'of the computation can be found in our paper, preliminarily titled "Wavelet screening: a novel look to GWAS data.".
 #'@return A named vector. The first position contains the estimated value of the Lambda statistics. The next positions of the vector are the computed proportion of associations per level of resolution.
 #'@examples \dontrun{
 #'set.seed(1)
@@ -82,9 +82,9 @@
 #'grid.arrange(P1,P2,ncol=2)
 #'
 #'##################
-#'#Wavelet screaming
+#'#Wavelet screening
 #'##################
-#'res <- Wavelet_screaming( Y,loci=genotype,bp=my_bp,
+#'res <- Wavelet_screening( Y,loci=genotype,bp=my_bp,
 #'                          lev_res=6)
 #'res
 #'#Value of the test statistics
@@ -131,7 +131,7 @@
 #'}
 
 
-Wavelet_screaming <- function(Y,
+Wavelet_screening <- function(Y,
                               loci,
                               bp,
                               confounder,

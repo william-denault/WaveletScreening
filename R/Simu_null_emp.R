@@ -1,7 +1,7 @@
 #'@title Simulation of the null statistics
 #'@description  Simulation of the null statistics
-#'@param res an output of Wavelet_screaming function. The user can also provide a matrix of results of Wavelet_screaming (from the same analysis), where the results have been concatenated by row (rbind).
-#'@param smp_size Sample size from the main run of Wavelet Screaming
+#'@param res an output of Wavelet_screening function. The user can also provide a matrix of results of Wavelet_screening (from the same analysis), where the results have been concatenated by row (rbind).
+#'@param smp_size Sample size from the main run of Wavelet screening
 #'@param lev_res the level of resolution in the wavelet transform
 #'@param coeftype type of wavelet coefficient used for the screening (choice "c" or "d"). If missing set as "d"
 #'@param size number of simulation to be performed

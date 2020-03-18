@@ -1,7 +1,7 @@
 
 #'@title Definition of the regions with unthresholded Betas.
-#'@description  Fine mapping tool for output of the Wavelet Screaming function.
-#'@param res Output of Wavelet_screaming, without Betas.
+#'@description  Fine mapping tool for output of the Wavelet screening function.
+#'@param res Output of Wavelet_screening, without Betas.
 #'@param lev_res the maximum level of resolution of the previous analysis.
 #'@param thresh numeric, Bayes factor threshold to defined the fine mapping. If missing set as 1.
 #'@param start numeric, start in base pair of the analyzed regions.

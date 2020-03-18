@@ -2,7 +2,7 @@
   packageStartupMessage("
 
       WAVELET
-     SCREAMING
+     SCREENING
 
      ----------
     -          -
@@ -21,8 +21,6 @@
  | |    ----    | |
   | |          | |
 
-
-Please cite:...
 
 
  ")

@@ -1,5 +1,5 @@
 #'@title Define chromosomal regions for screening
-#'@description  Define overlapping loci starting and ending positions for wavelet screaming analysis
+#'@description  Define overlapping loci starting and ending positions for wavelet screening analysis
 #'@param bp vector of the observed based pair positions in a chromosome
 #'@param Loci_size size of the defined loci, limited by thresh size gaps on ends. Slices smaller than Loci_size will be skipped.
 #'@param thresh maximal distance between two SNP within a locus. E.g., 10000

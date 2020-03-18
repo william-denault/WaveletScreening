@@ -1,15 +1,15 @@
-#'@title Data visualization for the output of Wavelet Screaming
-#'@description  Data visualization of Wavelet Screaming results.
-#'@param res Output of Wavelet_screaming, without Bayes Factor.
+#'@title Data visualization for the output of Wavelet screening
+#'@description  Data visualization of Wavelet screening results.
+#'@param res Output of Wavelet_screening, without Bayes Factor.
 #'@param bp a vector of the basepair position of the locus. You can provide only the starting and the endpoint of the locus. If missing ,set as 0, 1.
-#'@param lev_res the maximum level of resolution needed. This has to be less or equal to the requested level of resolution in the Wavelet_screaming.
+#'@param lev_res the maximum level of resolution needed. This has to be less or equal to the requested level of resolution in the Wavelet_screening.
 #'@param fill logical. If not, provide set as TRUE.
 #'@param dg numerical. This is the number of digits displayed on the x-axis. If missing, set at 3.
 #'@return return a ggplot
-#' @details The function generates a ggplot from the Wavelet Screaming output. It represents the Betas for the different scales of the wavelet decomposition.
+#' @details The function generates a ggplot from the Wavelet screening output. It represents the Betas for the different scales of the wavelet decomposition.
 #'The size and the darkness of the points that represent the Betas are scaled by the value of the Betas.
 #'If a Beta is not thresholded, then the region that represents the Beta is highlighted in order to give an overview of the size and the origin of the genetic signal.
-#'@seealso \code{\link{Wavelet_screaming}}
+#'@seealso \code{\link{Wavelet_screening}}
 #'
 plot_WS <- function(res,
                     bp,

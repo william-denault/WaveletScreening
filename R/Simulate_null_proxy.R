@@ -1,6 +1,6 @@
 #'@title Simulation of the null statistics
 #'@description  Simulation of the null statistics
-#'@param Y a vector of numeric values used in the wavelet screaming function for association (a phenotype or simulated phenotype with the same distribution).
+#'@param Y a vector of numeric values used in the wavelet screening function for association (a phenotype or simulated phenotype with the same distribution).
 #'@param confounder the confounding matrix with the same sample order as Y. The intercept should not be included if missing will generate an intercept matrix.
 #'@param lev_res the level of resolution in the wavelet transform
 #'@param size number of simulation to be performed

@@ -4,7 +4,7 @@
 #'@param confounder the confounding matrix with the same sample order as Y. The intercept should not be included, if missing will generate a intercept matrix.
 #'@param sigma_b the parameter of the NIG prior used for the Bayes Factor computation. We advised to set this value between 0.1 and 0.2
 #'@param all logical, if set as TRUE return all the Beta value (including the ones form the confounding factors). If set as FALSE only return the estimate for x, set as FALSE if missing.
-#'@details The Wavelet_screaming performed reverse regression so variance for all posterior distribution are equal.
+#'@details The Wavelet_screening performed reverse regression so variance for all posterior distribution are equal.
 #'@return A matrix variance covariance matrix
 #'@examples \dontrun{
 #'

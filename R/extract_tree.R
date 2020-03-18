@@ -1,12 +1,12 @@
-#'@title Extract sub result from the result of the wavelet_screaming
-#'@description  Function to performed zoomed analysis of the wavelet screaming output
-#'@param res Output of Wavelet_screaming.
-#'@param lev_res the maximum level of resolution needed, has to be less or equal to the request level of resolution in the Wavelet_screaming.
+#'@title Extract sub result from the result of the wavelet_screening
+#'@description  Function to performed zoomed analysis of the wavelet screening output
+#'@param res Output of Wavelet_screening.
+#'@param lev_res the maximum level of resolution needed, has to be less or equal to the request level of resolution in the Wavelet_screening.
 #'@param thresh Minimal value of the Bayes Factor to defined a sub-region if missing set as 1.
 #'@return A vector corresponding to the subtree for the zoomed analysis.
 #'@examples \dontrun{
 #'
-#'#using res for the Wavelet_screaming exemple
+#'#using res for the Wavelet_screening exemple
 #'
 #'
 #'sub_analysis <- function(res, lev_res )
