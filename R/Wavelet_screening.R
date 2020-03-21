@@ -6,7 +6,7 @@
 #'@param confounder the confounding matrix with the same sample order as Y. The intercept should not be included if missing will generate an intercept matrix.
 #'@param lev_res the maximum level of resolution needed.
 #'@param sigma_b the parameter of the NIG prior used for the Beta computation, set as NA by default. If not provided perform a frequentist modeling. We advised setting this value between 0.1 and 0.2
-#'@param coeftype type of wavelet coefficient used for the screening (choice "c" or "d"). If missing set as "d"
+#'@param coeftype type of wavelet coefficient used for the screening (choice "c" or "d"). If missing set as "c"
 #'@param base_shrink numeric, value used in the thresholding of the proportion of assocation, if non specificed set up as 1/sqrt(2*log(sample_size))
 #'@param para logical parameter for parallelization, if not specified, set at FALSE by default.
 #'@param BF logical parameter for obtainning the Bayes Factor of the wavelet regression. If not specified, set at FALSEby default.
@@ -173,9 +173,9 @@ Wavelet_screening <- function(Y,
   {
     if(verbose)
     {
-      print( "missing coeftype set as d")
+      print( "missing coeftype set as c")
     }
-    coeftype <- "d"
+    coeftype <- "c"
   }
   if(verbose)
   {

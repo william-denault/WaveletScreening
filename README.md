@@ -1,5 +1,5 @@
 
-## Wavelet Screaming: a tutorial
+## Wavelet Screening: a tutorial
 
 
 
@@ -13,7 +13,7 @@ Using the 'devtools' package:
 ```{r , eval=FALSE}
 install.packages( "devtools" )
 library( devtools )
-install_github( "william-denault/WaveletScreaming" )
+install_github( "william-denault/WaveletScreening" )
 ```
 
 Soon on CRAN
@@ -22,7 +22,7 @@ Soon on CRAN
 
 # Usage #
 
-See help from Wavelet_screaming
+See help from Wavelet_screening
 
 ### Generating simulated data:
 Here, a dummy example.
@@ -74,7 +74,7 @@ Y <-  rnorm(n=n_size,sd=sqrt(var_noise)) +type_fn
 
 
 ```{r , echo=FALSE}
-res <- Wavelet_screaming( Y,loci=genotype,bp=my_bp,
+res <- Wavelet_screening( Y,loci=genotype,bp=my_bp,
                          lev_res=6,sigma_b = 0.2)
 
 ```
@@ -83,7 +83,7 @@ res <- Wavelet_screaming( Y,loci=genotype,bp=my_bp,
 
 ### Assessing the significance
 
-The test statistics of the Wavelet Screaming method relies on a combination of two statistics. The first one L_h is the basis for the test, and the second is used as a penalization.
+The test statistics of the Wavelet Screening method relies on a combination of two statistics. The first one L_h is the basis for the test, and the second is used as a penalization.
 
 (it takes 5-7 minutes)
 ```{r , echo=FALSE}
@@ -145,12 +145,12 @@ You can find in the folder *examples*, our script for the full-genome screening.
 
 ## Slicing of the genome into regions
 
-As the Wavelet Screaming is made to analyze regions of the genome, the first step is to divide your data in *screenable regions*. The function *slice_definition* is meant for that. The user has to specify the size of the region to analyze (Loci_size) *AND* the maximum gap between two SNPs (thresh option) (in our setup, Loci_size=1e6, thresh=1e4).
+As the Wavelet Screening is made to analyze regions of the genome, the first step is to divide your data in *screenable regions*. The function *slice_definition* is meant for that. The user has to specify the size of the region to analyze (Loci_size) *AND* the maximum gap between two SNPs (thresh option) (in our setup, Loci_size=1e6, thresh=1e4).
 
 Below is a script that slices the vcf file and stores the slices in a specified directory. These slices will be analyzed in the next step.
 
 ```{r , echo=FALSE}
-library(WaveletScreaming)
+library(WaveletScreening)
 
 setwd("yourworking path")
 outdir = "your output path"
@@ -186,13 +186,13 @@ for(chr in args){
 
 ## Phenotype preparation for analysis
 
-IMPORTANT: The Wavelet Screaming function assumes that your covariate, your confounder matrix, and your genotype matrix are sorted in the same order.
+IMPORTANT: The Wavelet Screening function assumes that your covariate, your confounder matrix, and your genotype matrix are sorted in the same order.
 
 
 
 ## Genome-wide run
 Below is a code for dealing with genome-wide data.
-In the *example* folder, you will find detailed code for the Wavelet Screaming package that you can use via a terminal in combination with *bcftools*.
+In the *example* folder, you will find detailed code for the Wavelet Screening package that you can use via a terminal in combination with *bcftools*.
 We choose to store the slices in a given directory instead of working directly in the memory. This might not be optimal. However, it is handier when you want to examine various models, different confounding structures, and different phenotypes.
 The provided scripts are already parallelized.
 
@@ -225,7 +225,7 @@ library(wavethresh)
 library(data.table)
 library(corpcor)
 library(rARPACK)
-library(WaveletScreaming)
+library(WaveletScreening)
 library(RhpcBLASctl)
 
 blas_set_num_threads(1)
@@ -286,10 +286,10 @@ for(i in start:end){
 
 
   ## Coeftype D
-  # Run the Wavelet Screaming function
+  # Run the Wavelet Screening function
   ptm <- proc.time()
   temp <- NULL
-  temp <- Wavelet_screaming(Y=Yall,loci=my_slice,bp=bp,confounder=Confounderall,
+  temp <- Wavelet_screening(Y=Yall,loci=my_slice,bp=bp,confounder=Confounderall,
           lev_res=9, sigma_b=0.2, coeftype="d", para=FALSE)
 
   # Save the results in a result matrix after each run.
@@ -301,7 +301,7 @@ for(i in start:end){
   ##  Coeftype C
   ptm <- proc.time()
   temp <- NULL
-  temp <- Wavelet_screaming(Y=Yall,loci=my_slice,bp=bp,confounder=Confounderall,
+  temp <- Wavelet_screening(Y=Yall,loci=my_slice,bp=bp,confounder=Confounderall,
           lev_res=9, sigma_b=0.2, coeftype="c", para=FALSE)
   # Save the results in a result matrix after each run.
   res <- c("chr"=slices[i,1],"start"=slices[i,2],"end"=slices[i,3],temp)
