@@ -1,4 +1,4 @@
-# Run Order
+# Run Order 
 
 0. have phenotype data and imputed genotypes
 1. make phenotype file using bw_phenoprep.R
