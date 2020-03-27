@@ -3,7 +3,7 @@
 #'@param y phenotype vector/variable of interest, has to be numeric.
 #'@param x numerical, variable to regress on.
 #'@param confounder the confounding matrix with the same sample order as Y. The intercept should not be included, if missing will generate a intercept matrix.
-#'@param sigma_b the parameter of the NIG prior used for the Beta computation, set as NA by default. If not provided perform a frequentist modeling
+#'@param sigma_b the parameter of the NIG prior used for the Beta computation, set as NA by default. If not provided, performs a frequentist modeling
 #'@param all logical, if set as TRUE return all the Beta value (including the ones form the confounding factors). If set as FALSE only return the estimate for x, set as FALSE if missing.
 #'@details The Wavelet_screening function computes the Likelihood ratio used for testing significance of a genetic region. In addition it computes
 #'the porportion of wavelets coefficients associated by level of resolution, and the Bayes factor used for this estimation. All the details
