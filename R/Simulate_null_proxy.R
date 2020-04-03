@@ -6,6 +6,7 @@
 #'@param size number of simulation to be performed
 #'@param base_shrink numeric, value used in the thresholding of the proportion of assocation, if non specificed set up as 1/sqrt(2*log(sample_size)
 #'@param sigma_b the parameter of the NIG prior used for the Betas computation.
+#'@param coeftype type of wavelet coefficient used for the screening (choice "c" or "d"). If missing set as "c"
 #'@param verbose logical parameter, set as TRUE by default. ID
 #'@return The simulation under the null of the two test statistics used to build the final test (i.e., L_h and min(ph,pv))
 #'@examples \dontrun{
@@ -18,9 +19,15 @@ Simu_null_proxy <- function(Y,
                             size,
                             sigma_b=NA,
                             base_shrink,
+                            coeftype="c",
                             verbose=TRUE)
 {
   smp_size= length(Y)
+  if(missing(coeftype))
+  {
+    print( "missing coeftype set as d")
+    coeftype <- "c"
+  }
 
   if( is.na(sigma_b))
   {

@@ -486,11 +486,11 @@ Wavelet_screening <- function(Y,
 
   if(BF ==FALSE)
   {
-    out <- c(test_stat,my_betas,postH1)
+    out <- c(test_stat,my_betas,postH1,null_sd)
   }
   else
   {
-    out <-  c(test_stat,my_betas,postH1,my_bayes)
+    out <-  c(test_stat,my_betas,postH1,my_bayes, null_sd)
   }
 
   #Naming the output
@@ -510,7 +510,9 @@ Wavelet_screening <- function(Y,
     names(out) <- c("L_h",
                     "min_ph_pv",
                     names_Betas,
-                    names_postH1)
+                    names_postH1,
+                    "null_sd_start_EM")
+
   }
   else
   {
@@ -536,7 +538,7 @@ Wavelet_screening <- function(Y,
                     "min_ph_pv",
                     names_Betas,
                     names_postH1,
-                    names_BF)
+                    names_BF,"null_sd_start_EM")
   }
 
 

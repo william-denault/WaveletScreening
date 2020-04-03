@@ -1,6 +1,6 @@
 ---
-title: "Wavelet Screaming on methyaltion"
-author: "William Denault"
+title: "Wavelet screening on methylation"
+author: "William R.P. Denault"
 date: "19/02/2020"
 output:
   html_document: default
@@ -40,8 +40,7 @@ sim_methy_all[1:10,]
 
 
 ### Defining slice 
-
-Here we divide the data in regions that have at least 17 CpGs separated by a maximum distance of 500 bp. This results to a missigness rate of 1.89 %
+Here we divide the data into regions that have at least 17 CpGs separated by a maximum distance of 500 bp. This results in a missingness rate of 1.89 %
 ```{r }
 thresh <- 500
 tl <- split(temp.pos , cumsum(c(1, diff(temp.pos) > thresh)  ) ) #Remove case with too long distance
@@ -54,18 +53,19 @@ hist( lengths(tl),nclass = 100, main="Histogram of the number of CpG per regions
 ```
 
 
-## Running Wavelet Screaming region by region
+## Running Wavelet screening region by region
 
-In this section we run Wavelet Screaming on each regions speratly. This takes about 3/4 minutes when using a single CPU. 
+
+In this section, we run Wavelet screening on each region separately. This takes about 3/4 minutes when using a single CPU. 
 ```{r message=FALSE}
-library(WaveletScreaming)
+library(WaveletScreening)
 tt <- proc.time()
 res <- list()
 for ( i in 1 :length(tl))
 {
   reg_mat <- sim_methy_all[which( temp.pos  %in% tl[[i]]),] #Select CpG in region i
   bp <- temp.pos[which( temp.pos  %in% tl[[i]])]#Correspond to the base position of the CpG of region i 
-  res[[i]] <- Wavelet_screaming( Y=pheno,
+  res[[i]] <- Wavelet_screening( Y=pheno,
                                  loci=reg_mat,
                                  lev_res=4,
                                  coeftype = "c",
@@ -82,7 +82,7 @@ for ( i in 1 :length(tl))
 proc.time()  -tt #total running time
 ```
 
-We concatenate the results of Wavelet Screaming in one data frame. 
+We concatenate the results of Wavelet screening in one data frame. 
 ```{r echo=TRUE}
 res <- do.call( rbind, res)
 res[1:10,]
@@ -91,10 +91,10 @@ res[1:10,]
 
 ## Simulation of the null distribution
 
-In order to assess the significance of each regions, we simulate the null distribution of the test statistic. Below we display how to simulate this distribution
+To assess the significance of each region, we simulate the null distribution of the test statistic. Below we display how to simulate this distribution/
 ```{r ,message=FALSE,}
 set.seed(1)
-#Simulation function using the same parameter as used in the Wavelet_screaming function
+#Simulation function using the same parameter as used in the Wavelet_screening function
 tt <- proc.time()
 Sim <- Simu_null_emp(res=res,
                        coeftype="c",
@@ -109,7 +109,7 @@ plot( Sim[,1], Sim[,2])
 
 ## Performing the Box-Cox transform
 
-As explain in the article, the distribution of L~h~ might not be Gaussian when analysing data using low depth. Below, we display how to perform a Box-Cox transform on the simulations of the test statistic under the H~0~ .
+As explained in the article, the distribution of L~h~ might not be Gaussian when analyzing data using low depth. Below, we display how to perform a Box-Cox transform on the simulations of the test statistic under the H~0~ .
 ```{r ,message=FALSE,echo=TRUE}
 library(EnvStats)
 
@@ -123,8 +123,7 @@ dat <- data.frame(dens = c(c(res[,1]),c(Sim[,1]))
 
 ## Computing the p-values
 
-When the Box-Cox transform is done, we can then compute the pvalue of each region as follow.
-
+When the Box-Cox transform is done, we can then compute the p-value of each region as follow.
 ```{r,message=FALSE }
 lambda <- Search_lambda(Sim,plot=TRUE)#optimizing the lambda* value
 
@@ -156,9 +155,9 @@ hist(log10(1-pnorm(th,mean=muv,sd=sdv)),main ="Histogramm of the Log10 pvalues")
 
 
 
-## Loading data from Irizzary et al 2009 Nature Genetics
+## Loading data from Irizzary et al. 2009 Nature Genetics
 
-The data can be found at https://www.nature.com/articles/ng.298 as supplementary material
+The data can be found at https://www.nature.com/articles/ng.298 as supplementary material.
 
 ```{r,message=FALSE }
 library(readxl)
@@ -186,7 +185,7 @@ pos_to_detect <-  do.call( c,lstemp)#List of the CpG to detect
 
 ## Performing a slicing 
 
-Ensure same slicing as before
+Ensure the same slicing as before.
 
 ```{r }
 thresh <- 500
@@ -201,7 +200,7 @@ pos_to_detect <- pos_to_detect [which(pos_to_detect %in% do.call( c , tl))] #fil
 
 ## Power
 
-If a region contains more than one CpG that is differentially methylated then it has to be deteceted
+If a region contains more than one CpG that is differentially methylated, then it has to be detected.
 ```{r }
 #N° of CpG per regions
 n_CpG_per_region <- list()
@@ -258,5 +257,4 @@ df_out <- data.frame(type=type, threshold = threshold, nb_detected_region= detec
 df_out
 ```
 
-
-df_out summaries the number of regions detected using different criterion as well as the number of truly associated regions.
+df_out summaries the number of regions detected using different criteria and the number of truly associated regions.

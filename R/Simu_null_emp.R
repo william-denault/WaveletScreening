@@ -3,7 +3,7 @@
 #'@param res an output of Wavelet_screening function. The user can also provide a matrix of results of Wavelet_screening (from the same analysis), where the results have been concatenated by row (rbind).
 #'@param smp_size Sample size from the main run of Wavelet screening
 #'@param lev_res the level of resolution in the wavelet transform
-#'@param coeftype type of wavelet coefficient used for the screening (choice "c" or "d"). If missing set as "d"
+#'@param coeftype type of wavelet coefficient used for the screening (choice "c" or "d"). If missing set as "c"
 #'@param size number of simulation to be performed
 #'@param base_shrink numeric, value used in the thresholding of the proportion of assocation, if non specificed set up as 1/sqrt(2*log(sample_size)
 #'@param print logical parameter set as TRUE, if TRUE sends a message when 10\% of the simulations have been completed.
@@ -28,7 +28,7 @@ Simu_null_emp <- function(res,
   if(missing(coeftype))
   {
     print( "missing coeftype set as d")
-    coeftype <- "d"
+    coeftype <- "c"
   }
 
   #computing the structure of the covariance for the simulations
@@ -74,7 +74,6 @@ Simu_null_emp <- function(res,
   #Compute proxy for empirical covariance matrix
   emp_cov <- (cov(Gen_W_trans))
 
-
   ################################################
   #Computing robustified variance for the diagonal
   ################################################
@@ -91,7 +90,8 @@ Simu_null_emp <- function(res,
   ######################
   #Set up for simulation
   ######################
-  null_sd <-  var_sim
+
+  null_sd <-  mean(res[, grep(pattern = "null_sd_start_EM",colnames(res))])
   Pi_nt <- list()
   alt_sd <- 100*null_sd
   if(missing(base_shrink))
