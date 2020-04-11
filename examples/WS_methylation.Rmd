@@ -1,6 +1,6 @@
 ---
 title: "Wavelet screening on methylation"
-author: "William R.P. Denault"
+author: "William R.P. Denault et al."
 date: "19/02/2020"
 output:
   html_document: default
@@ -42,6 +42,7 @@ sim_methy_all[1:10,]
 ### Defining slice 
 Here we divide the data into regions that have at least 17 CpGs separated by a maximum distance of 500 bp. This results in a missingness rate of 1.89 %
 ```{r }
+
 thresh <- 500
 tl <- split(temp.pos , cumsum(c(1, diff(temp.pos) > thresh)  ) ) #Remove case with too long distance
 
@@ -58,13 +59,14 @@ hist( lengths(tl),nclass = 100, main="Histogram of the number of CpG per regions
 
 In this section, we run Wavelet screening on each region separately. This takes about 3/4 minutes when using a single CPU. 
 ```{r message=FALSE}
+
 library(WaveletScreening)
 tt <- proc.time()
 res <- list()
 for ( i in 1 :length(tl))
 {
   reg_mat <- sim_methy_all[which( temp.pos  %in% tl[[i]]),] #Select CpG in region i
-  bp <- temp.pos[which( temp.pos  %in% tl[[i]])]#Correspond to the base position of the CpG of region i 
+  bp <- temp.pos[which( temp.pos  %in% tl[[i]])]#Correspond to the base position of the CpG of region i
   res[[i]] <- Wavelet_screening( Y=pheno,
                                  loci=reg_mat,
                                  lev_res=4,
@@ -74,8 +76,8 @@ for ( i in 1 :length(tl))
                                  sigma_b =200,
                                  verbose = FALSE
   )
-  
-  
+
+
 }
 
 
@@ -86,7 +88,6 @@ We concatenate the results of Wavelet screening in one data frame.
 ```{r echo=TRUE}
 res <- do.call( rbind, res)
 res[1:10,]
-
 ```
 
 ## Simulation of the null distribution
@@ -97,11 +98,11 @@ set.seed(1)
 #Simulation function using the same parameter as used in the Wavelet_screening function
 tt <- proc.time()
 Sim <- Simu_null_emp(res=res,
-                       coeftype="c",
-                       lev_res = 4,
-                       base_shrink = 1/26,
-                       size=100000#Number of simulation required
-                     )
+                     coeftype="c",
+                     lev_res = 4,
+                     base_shrink = 1/26,
+                     size=100000#Number of simulation required
+)
 proc.time()  -tt #total running time
 plot( Sim[,1], Sim[,2])
 ```
@@ -110,14 +111,15 @@ plot( Sim[,1], Sim[,2])
 ## Performing the Box-Cox transform
 
 As explained in the article, the distribution of L~h~ might not be Gaussian when analyzing data using low depth. Below, we display how to perform a Box-Cox transform on the simulations of the test statistic under the H~0~ .
+
+Here we have an additionnal issue, the observed test statistics contains some positive and negative values. However the Box-Cox transform requires to have only positive values. We therefore shift the distribution and then apply the Box-Cox transform
 ```{r ,message=FALSE,echo=TRUE}
 library(EnvStats)
+shifting  <-  max( 0,1.0001*max( Sim[,1],res[,1]))
+bc_lambda <-  boxcox(-Sim[,1] + shifting, optimize = TRUE)
+Sim[,1]   <-  - ( ( (-Sim[,1] + shifting)^bc_lambda$lambda) -1  )/bc_lambda$lambda
+res[,1]   <-  - ( ( (-res[,1] + shifting)^bc_lambda$lambda) -1  )/bc_lambda$lambda
 
-bc_lambda <-  boxcox(-Sim[,1], optimize = TRUE)
-Sim[,1]  <-  - (((-Sim[,1])^bc_lambda$lambda) -1  )/bc_lambda$lambda
-res[,1]  <-  - (((-res[,1])^bc_lambda$lambda) -1  )/bc_lambda$lambda
-dat <- data.frame(dens = c(c(res[,1]),c(Sim[,1]))
-                  , lines = c(rep("obs", length(c(res[,1]))), rep( "sim", length(c(Sim[,1]))) ))
 ```
 
 
@@ -138,10 +140,13 @@ th <-  res[,1]+lambda*res[,2]#Computing the test statistic
 ##########################
 ##Plot of two distribution
 ##########################
-dat <- data.frame(dens = c(c(th),c(Th))
-                  , lines = c(rep("obs", length(c(th))), rep( "sim", length(c(Th))) ))
+dat <- data.frame(dens = c(c(th),c(Th[1:2000]))#To have the same size on the plot
+                  , lines = c(rep("obs", length(c(th))), rep( "sim", length(c(Th[1:2000]))) ))
 
-ggplot(dat, aes(x = dens, fill = lines)) + geom_density(alpha = 0.5)+ggtitle("Test stat density")
+ggplot(dat, aes(x = dens, fill = lines)) +
+  geom_density(alpha = 0.5)+
+  xlim(c(-3,3))+#Some of the associated regions have test statistics very far from the null; this results in poor visualization if they are not excluded.
+  ggtitle("Test stat density")
 ```
 
 Here we see the null distribution of the test statistic and on the right side of the plot the associated regions.
@@ -150,7 +155,7 @@ Here we see the null distribution of the test statistic and on the right side of
 #Computing the p-value
 pv <- 1-pnorm(th,mean=muv,sd=sdv)
 hist(1-pnorm(th,mean=muv,sd=sdv),nclass=100, main="Histogramm of the pvalues")
-hist(log10(1-pnorm(th,mean=muv,sd=sdv)),main ="Histogramm of the Log10 pvalues")
+hist(log10(1-pnorm(th,mean=muv,sd=sdv)),nclass=100,main ="Histogramm of the Log10 pvalues")
 ```
 
 
