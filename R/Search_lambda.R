@@ -77,7 +77,7 @@ Search_lambda <- function(Sim,plot=FALSE)
 
     if(i >10000)
     {
-      print("Penalization parameter over 10 millions, provide bigger simulation set (suggested size 50k simulation)")
+      print("Penalization parameter over 10 millions, provide bigger simulation set (suggested size > 50k simulations)")
       break
     }
   }
