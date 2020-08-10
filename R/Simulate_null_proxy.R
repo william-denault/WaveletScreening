@@ -3,7 +3,7 @@
 #'@param Y a vector of numeric values used in the wavelet screening function for association (a phenotype or simulated phenotype with the same distribution).
 #'@param confounder the confounding matrix with the same sample order as Y. The intercept should not be included if missing will generate an intercept matrix.
 #'@param lev_res the level of resolution in the wavelet transform
-#'@param size number of simulation to be performed
+#'@param size number of simulation to be performed. If not specified set at 10000
 #'@param base_shrink numeric, value used in the thresholding of the proportion of assocation, if non specificed set up as 1/sqrt(2*log(sample_size)
 #'@param sigma_b the parameter of the NIG prior used for the Betas computation.
 #'@param coeftype type of wavelet coefficient used for the screening (choice "c" or "d"). If missing set as "c"
@@ -16,11 +16,11 @@
 Simu_null_proxy <- function(Y,
                             confounder,
                             lev_res,
-                            size,
-                            sigma_b=NA,
+                            size=10000,
+                            sigma_b= NA,
                             base_shrink,
-                            coeftype="c",
-                            verbose=TRUE)
+                            coeftype= "c",
+                            verbose= TRUE)
 {
   smp_size= length(Y)
   if(missing(coeftype))

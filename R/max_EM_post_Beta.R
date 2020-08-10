@@ -16,13 +16,13 @@ max_EM_post_Beta <- function(my_betas, lev_res,null_sd,alt_sd,alp) {
   eps <-10^-10#slight correction in case of non identifiable mixture
   #prevent from having division by 0 in update parameter sum(temp)
   betasub = my_betas
-  m0.hat<-0
-  m1.hat<-0
-  sigma0.hat<- null_sd
-  sigma1.hat<-alt_sd
+  m0.hat <- 0
+  m1.hat <- 0
+  sigma0.hat <- null_sd
+  sigma1.hat <- alt_sd
   #Prevent from label swapping
   if(sigma1.hat < sigma0.hat){
-    sigma1.hat <- 3*sigma0.hat+sigma1.hat
+     sigma1.hat <- 3*sigma0.hat+sigma1.hat
   }
 
   p.hat<-0.25

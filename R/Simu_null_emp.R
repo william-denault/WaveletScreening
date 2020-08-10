@@ -4,7 +4,7 @@
 #'@param smp_size Sample size from the main run of Wavelet screening
 #'@param lev_res the level of resolution in the wavelet transform
 #'@param coeftype type of wavelet coefficient used for the screening (choice "c" or "d"). If missing set as "c"
-#'@param size number of simulation to be performed
+#'@param size number of simulation to be performed. If not specified set at 10000
 #'@param base_shrink numeric, value used in the thresholding of the proportion of assocation, if non specificed set up as 1/sqrt(2*log(sample_size)
 #'@param print logical parameter set as TRUE, if TRUE sends a message when 10\% of the simulations have been completed.
 #'@return The simulation under the null of the two test statistics used to build the final test (i.e., L_h and min(ph,pv))
@@ -12,9 +12,9 @@ Simu_null_emp <- function(res,
                           smp_size,
                           lev_res,
                           coeftype,
-                          size,
+                          size= 10000,
                           base_shrink,
-                          print=TRUE)
+                          print= TRUE)
 {
 
   #####################################
