@@ -48,7 +48,6 @@
 #'
 #'
 #'genotype <-  matrix(my_functions[my_bp,2 ], ncol=1 ) %*%t(matrix(type_fn,ncol=1))
-#'genotype <- genotype+ rnorm(dim(genotype)[1]*dim(genotype)[2],sd=0.1)
 #'#dim(genotype)= nSNP, nind
 #'
 #'###############################################################
@@ -66,7 +65,7 @@
 #'        axis.title=element_text(size=14,face="bold"))+
 #'  ylab("Simulated Phenotype")+
 #'  theme_bw()+
-#'  ggtitle("Variation of the phenotype\ndepending of the genotype, \nVariance explained =0.5%")
+#'  ggtitle("Variation of the phenotype\n depending of the genotype, \n Variance explained =0.5%")
 #'
 #'df <- data.frame(bp= rep(my_bp,3),y=c(my_functions[my_bp,1],my_functions[my_bp,2],my_functions[my_bp,3]),
 #'                 mycol = factor(c(rep("f0",length(my_bp)),rep("f1",length(my_bp)),rep("f2",length(my_bp))) ) )
