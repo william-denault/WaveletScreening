@@ -8,6 +8,7 @@
 #'@param base_shrink numeric, value used in the thresholding of the proportion of assocation, if non specificed set up as 1/sqrt(2*log(sample_size)
 #'@param print logical parameter set as TRUE, if TRUE sends a message when 10\% of the simulations have been completed.
 #'@return The simulation under the null of the two test statistics used to build the final test (i.e., L_h and min(ph,pv))
+
 Simu_null_emp <- function(res,
                           smp_size,
                           lev_res,
@@ -53,45 +54,52 @@ Simu_null_emp <- function(res,
     return(res)
   }
 
-  N=1000
-  #Generate random signal
-  SNP=1:2^(lev_res+3)
-  bp= SNP
-  #Preparing for the wavelet transform
-  Time01 <- (bp- min(bp))/(max(bp)-min(bp))
-  loci<- matrix(runif(N*2^(lev_res+3),min=0,2),ncol=N)
-  for ( i in 1:N)
-  {
-    loci[,i]  <- rnorm(n = 2^(lev_res+3))
 
 
-  }
-
-  bp=1:2^(lev_res)
-  #Preparing for the wavelet transform
-  Gen_W_trans <- apply(loci,2,my_wavproc)
-  Gen_W_trans = apply(Gen_W_trans, 1, Quantile_transform)
-  #Compute proxy for empirical covariance matrix
-  emp_cov <- (cov(Gen_W_trans))
 
   ################################################
   #Computing robustified variance for the diagonal
   ################################################
   if( length(dim(res) )==0) {
-    var_sim <-  mad( res[ grep( pattern = "Beta", names(res))])^2
+    N=1000
+    #Generate random signal
+    SNP=1:2^(lev_res+3)
+    bp= SNP
+    #Preparing for the wavelet transform
+    Time01 <- (bp- min(bp))/(max(bp)-min(bp))
+    loci<- matrix(runif(N*2^(lev_res+3),min=0,2),ncol=N)
+    for ( i in 1:N)
+    {
+      loci[,i]  <- rnorm(n = 2^(lev_res+3))
+
+
+    }
+
+    bp=1:2^(lev_res)
+    #Preparing for the wavelet transform
+    Gen_W_trans <- apply(loci,2,my_wavproc)
+    Gen_W_trans = apply(Gen_W_trans, 1, Quantile_transform)
+    #Compute proxy for empirical covariance matrix
+    null_sd <-  mean(res[, grep(pattern = "null_sd_start_EM",names(res))])
+    var_sim <-  null_sd^2
+    emp_cov <- (cov(Gen_W_trans))
+    emp_cov <-  var_sim * (emp_cov/(max(emp_cov)))
+
   }   else   {
+    emp_cov <- (cov(res [, grep( pattern = "Beta*", colnames(res))]))
     subres <- res [, grep( pattern = "Beta*", colnames(res))]
     temp <-  c(subres)
     var_sim <- mad(temp)^2
+    null_sd <-sqrt(var_sim)
   }
 
-  emp_cov <-  var_sim * (emp_cov/(max(emp_cov)))
+
 
   ######################
   #Set up for simulation
   ######################
 
-  null_sd <-  mean(res[, grep(pattern = "null_sd_start_EM",colnames(res))])
+  #null_sd <-  mean(res[, grep(pattern = "null_sd_start_EM",colnames(res))])
   Pi_nt <- list()
   alt_sd <- 100*null_sd
   if(missing(base_shrink))
@@ -137,3 +145,4 @@ Simu_null_emp <- function(res,
   colnames(out) <- c("L_h","min_ph_pv")
   return(out)
 }
+
