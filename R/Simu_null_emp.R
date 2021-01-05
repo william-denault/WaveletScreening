@@ -27,7 +27,7 @@ Simu_null_emp <- function(res,
 
   if(missing(coeftype))
   {
-    print( "missing coeftype set as d")
+    print( "missing coeftype set as c")
     coeftype <- "c"
   }
 

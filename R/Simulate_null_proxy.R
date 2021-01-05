@@ -25,7 +25,7 @@ Simu_null_proxy <- function(Y,
   smp_size= length(Y)
   if(missing(coeftype))
   {
-    print( "missing coeftype set as d")
+    print( "missing coeftype set as c")
     coeftype <- "c"
   }
 
