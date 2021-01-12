@@ -1,7 +1,7 @@
 ---
-title: "Wavelet screening on methylation"
+title: "Wavelet Screening applied to DNA methylation"
 author: "William R.P. Denault et al."
-date: "19/02/2020"
+date: "12/01/2021"
 output:
   html_document: default
 ---
@@ -25,12 +25,12 @@ pheno[1:4]
 
 ```
 
-The data are compound of two more element:
-* The base pair position of each CpG
-* The individual CpG level (in M values)
+The data are a compound of two elements:
+1) The base pair position of each CpG,
+2) The individual CpG level (M value)
 ```{r}
 temp.pos[1:10]#the base pair position of each CpG
-length(temp.pos)#total number of CpG
+length(temp.pos)#total number of CpGs
 dim(sim_methy_all)#lines= CpG level, column individual
 sim_methy_all[1:10,]
 ```
@@ -40,24 +40,24 @@ sim_methy_all[1:10,]
 
 
 ### Defining slice 
-Here we divide the data into regions that have at least 17 CpGs separated by a maximum distance of 500 bp. This results in a missingness rate of 1.89 %
+Here, we divide the data into regions that have at least 17 CpGs, separated by a maximum distance of 500 bp. This results in a missingness rate of 1.89%.
 ```{r }
 
 thresh <- 500
-tl <- split(temp.pos , cumsum(c(1, diff(temp.pos) > thresh)  ) ) #Remove case with too long distance
+tl <- split(temp.pos , cumsum(c(1, diff(temp.pos) > thresh)  ) ) #Remove cases that are too far apart
 
 #Level of analysis 4
-tl <-  tl[-which(lengths(tl)< 17)]#List of the position of CpG that we will later analyse
-sum(lengths(tl))/length( temp.pos)#percent missigness
-hist( lengths(tl),nclass = 100, main="Histogram of the number of CpG per regions")
+tl <-  tl[-which(lengths(tl)< 17)]#List of the positions of CpGs that we will analyze later
+sum(lengths(tl))/length( temp.pos)#percent missingness
+hist( lengths(tl),nclass = 100, main="Histogram of the number of CpGs per region")
 
 ```
 
 
-## Running Wavelet screening region by region
+## Running Wavelet Screening region by region
 
 
-In this section, we run Wavelet screening on each region separately. This takes about 3/4 minutes when using a single CPU. 
+In this section, we run Wavelet Screening on each region separately. This takes about 3 to 4 minutes on a single CPU. 
 ```{r message=FALSE}
 
 library(WaveletScreening)
@@ -65,8 +65,8 @@ tt <- proc.time()
 res <- list()
 for ( i in 1 :length(tl))
 {
-  reg_mat <- sim_methy_all[which( temp.pos  %in% tl[[i]]),] #Select CpG in region i
-  bp <- temp.pos[which( temp.pos  %in% tl[[i]])]#Correspond to the base position of the CpG of region i
+  reg_mat <- sim_methy_all[which( temp.pos  %in% tl[[i]]),] #Select CpGs in region i
+  bp <- temp.pos[which( temp.pos  %in% tl[[i]])]#Correspond to the base position of the CpG in region i
   res[[i]] <- Wavelet_screening( Y=pheno,
                                  loci=reg_mat,
                                  lev_res=4,
@@ -81,10 +81,10 @@ for ( i in 1 :length(tl))
 }
 
 
-proc.time()  -tt #total running time
+proc.time()  -tt #total run time
 ```
 
-We concatenate the results of Wavelet screening in one data frame. 
+We concatenate the results of Wavelet Screening into one data frame. 
 ```{r echo=TRUE}
 res <- do.call( rbind, res)
 res[1:10,]
@@ -92,7 +92,7 @@ res[1:10,]
 
 ## Simulation of the null distribution
 
-To assess the significance of each region, we simulate the null distribution of the test statistic. Below we display how to simulate this distribution/
+To assess the significance of each region, we simulate the null distribution of the test statistic. Below we display how to simulate this distribution.
 ```{r ,message=FALSE,}
 set.seed(1)
 #Simulation function using the same parameter as used in the Wavelet_screening function
@@ -101,7 +101,7 @@ Sim <- Simu_null_emp(res=res,
                      coeftype="c",
                      lev_res = 4,
                      base_shrink = 1/26,
-                     size=100000#Number of simulation required
+                     size=100000#Number of simulations required
 )
 proc.time()  -tt #total running time
 plot( Sim[,1], Sim[,2])
@@ -110,9 +110,9 @@ plot( Sim[,1], Sim[,2])
 
 ## Performing the Box-Cox transform
 
-As explained in the article, the distribution of L~h~ might not be Gaussian when analyzing data using low depth. Below, we display how to perform a Box-Cox transform on the simulations of the test statistic under the H~0~ .
+As explained in the article, the distribution of L~h~ might not be Gaussian when analyzing data using low depth. Below, we display how to perform a Box-Cox transform on the simulations of the test statistic under the H~0.
 
-Here we have an additionnal issue, the observed test statistics contains some positive and negative values. However the Box-Cox transform requires to have only positive values. We therefore shift the distribution and then apply the Box-Cox transform
+Here, we have an additionnal issue: the observed test statistics contains some positive and some negative values. However the Box-Cox transform requires only positive values. We therefore shift the distribution and then apply the Box-Cox transform.
 ```{r ,message=FALSE,echo=TRUE}
 library(EnvStats)
 shifting  <-  max( 0,1.0001*max( Sim[,1],res[,1]))
@@ -125,20 +125,20 @@ res[,1]   <-  - ( ( (-res[,1] + shifting)^bc_lambda$lambda) -1  )/bc_lambda$lamb
 
 ## Computing the p-values
 
-When the Box-Cox transform is done, we can then compute the p-value of each region as follow.
+When the Box-Cox transform is done, we can then compute the p-value of each region as follows.
 ```{r,message=FALSE }
 lambda <- Search_lambda(Sim,plot=TRUE)#optimizing the lambda* value
 
-Th <- Sim[,c("L_h")]+lambda*Sim[,c("min_ph_pv")] #Computing the test statistic null distribution
+Th <- Sim[,c("L_h")]+lambda*Sim[,c("min_ph_pv")] #Computing the null distribution of the test statistic 
 muv <- median(Th,na.rm = TRUE) #estimating the parameter of the null distribution
 sdv <- mad(Th,na.rm = TRUE)
 ####################################
-##Test Value of the loci to be tested
+##Test value of the loci to be tested
 ####################################
 th <-  res[,1]+lambda*res[,2]#Computing the test statistic
 
 ##########################
-##Plot of two distribution
+##Plot of two distributions
 ##########################
 dat <- data.frame(dens = c(c(th),c(Th[1:2000]))#To have the same size on the plot
                   , lines = c(rep("obs", length(c(th))), rep( "sim", length(c(Th[1:2000]))) ))
@@ -149,19 +149,18 @@ ggplot(dat, aes(x = dens, fill = lines)) +
   ggtitle("Test stat density")
 ```
 
-Here we see the null distribution of the test statistic and on the right side of the plot the associated regions.
+Here, we see the null distribution of the test statistic, and the associated regions on the right side of the plot.
 
 ```{r,message=FALSE }
 #Computing the p-value
 pv <- 1-pnorm(th,mean=muv,sd=sdv)
-hist(1-pnorm(th,mean=muv,sd=sdv),nclass=100, main="Histogramm of the pvalues")
-hist(log10(1-pnorm(th,mean=muv,sd=sdv)),nclass=100,main ="Histogramm of the Log10 pvalues")
+hist(1-pnorm(th,mean=muv,sd=sdv),nclass=100, main="Histogram of the pvalues")
+hist(log10(1-pnorm(th,mean=muv,sd=sdv)),nclass=100,main ="Histogram of the Log10 pvalues")
 ```
 
 
 
-## Loading data from Irizzary et al. 2009 Nature Genetics
-
+## Loading data from Irizzary et al. 2009  
 The data can be found at https://www.nature.com/articles/ng.298 as supplementary material.
 
 ```{r,message=FALSE }
@@ -169,7 +168,7 @@ library(readxl)
 tt <- read_excel("41588_2009_BFng298_MOESM18_ESM.xls")
 sub <- tt[which(tt[,2]=="chr3"),]#Only selecting Chromosome 3
 sub <- as.data.frame(sub)
-head(sub) #data frame with starting and ending position of each DMR we are trying to detect.
+head(sub) #data frame with the start and end positions of each DMR we are trying to detect.
 
 lstemp <- list() #
 
@@ -180,8 +179,8 @@ for (i in 1: dim(sub)[1])
   
 }
 
-sum( lengths(lstemp)) # number of CpG to detect
-pos_to_detect <-  do.call( c,lstemp)#List of the CpG to detect
+sum( lengths(lstemp)) # number of CpGs to detect
+pos_to_detect <-  do.call( c,lstemp)#List of the CpGs to detect
 
 
 ```
@@ -195,10 +194,10 @@ Ensure the same slicing as before.
 ```{r }
 thresh <- 500
 
-tl <- split(temp.pos , cumsum(c(1, diff(temp.pos) > thresh)  ) ) #Remove case with too long distance
-tl <-  tl[-which(lengths(tl) <17)]#Keep only long enough sequence of CPG
+tl <- split(temp.pos , cumsum(c(1, diff(temp.pos) > thresh)  ) ) #Remove cases that are too far apart
+tl <-  tl[-which(lengths(tl) <17)]#Keep only long-enough sequences of CPGs
 
-pos_to_detect <- pos_to_detect [which(pos_to_detect %in% do.call( c , tl))] #filtering out the CpG remove when slicing
+pos_to_detect <- pos_to_detect [which(pos_to_detect %in% do.call( c , tl))] #filtering out the CpGs when slicing
 
 ```
 
@@ -207,7 +206,7 @@ pos_to_detect <- pos_to_detect [which(pos_to_detect %in% do.call( c , tl))] #fil
 
 If a region contains more than one CpG that is differentially methylated, then it has to be detected.
 ```{r }
-#N° of CpG per regions
+#Number of CpGs per regions
 n_CpG_per_region <- list()
 
 for ( i in 1:length(tl))
@@ -262,4 +261,4 @@ df_out <- data.frame(type=type, threshold = threshold, nb_detected_region= detec
 df_out
 ```
 
-df_out summaries the number of regions detected using different criteria and the number of truly associated regions.
+df_out summarizes the number of regions detected using different criteria and the number of truly associated regions.

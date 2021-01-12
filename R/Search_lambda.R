@@ -61,7 +61,7 @@ Search_lambda <- function(Sim,plot=FALSE)
   pos_check <- c()
   i <-0
   temp  <-0
-  print("Rought search")
+  print("Rough search")
   while( temp < Rank0+1)
   {
     i <-i +1
@@ -81,7 +81,7 @@ Search_lambda <- function(Sim,plot=FALSE)
       break
     }
   }
-  print("Dichotomised search")
+  print("Dichotomized search")
   upper_lim <- i*1000
   lower_lim <- (i-1)*1000
   for(j in lower_lim:upper_lim)
