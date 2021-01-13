@@ -7,7 +7,7 @@
 fine_map(res, lev_res, thresh, start, end, chr)
 }
 \arguments{
-\item{res}{Output of Wavelet_screaming, without Betas.}
+\item{res}{Output of Wavelet_screening, without Betas.}
 
 \item{lev_res}{the maximum level of resolution of the previous analysis.}
 
@@ -18,7 +18,7 @@ fine_map(res, lev_res, thresh, start, end, chr)
 \item{chr}{numeric, end in base pair of the analyzed regions.}
 }
 \description{
-Fine mapping tool for output of the Wavelet Screaming function.
+Fine mapping tool for output of the Wavelet screening function.
 }
 \details{
 return a list of chr, start end position, that corresponds of the sub-regions defined by the dyadic decomposition of wavelet that is associated with a Bayes factor over the defined threshold.

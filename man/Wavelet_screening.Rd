@@ -10,7 +10,7 @@ Wavelet_screening(
   bp,
   confounder,
   lev_res,
-  sigma_b,
+  sigma_b = NA,
   coeftype,
   base_shrink,
   para = FALSE,
@@ -19,7 +19,7 @@ Wavelet_screening(
 )
 }
 \arguments{
-\item{Y}{Y phenotype vector has to be numeric. For case-control  data, code it as 0 and 1. Multiple label phenotypes, e.g., ABO blood groups, will be implemented in the next version.}
+\item{Y}{phenotype vector has to be numeric. For case-control  data, code it as 0 and 1. Multiple label phenotypes, e.g., ABO blood groups, will be implemented in the next version.}
 
 \item{loci}{genotype matrix (either data.frame or numeric matrix). Lines=SNPs in increasing order in terms of base pair, columns=individuals. No missing values allowed.}
 
@@ -33,8 +33,7 @@ Wavelet_screening(
 
 \item{coeftype}{type of wavelet coefficient used for the screening (choice "c" or "d"). If missing set as "c"}
 
-
-\item{base_shrink}{base_shrink numeric, value used in the thresholding of the proportion of assocation, if non specificed set up as $\frac{1}{sqrt(2*log(sample_size))}$}
+\item{base_shrink}{numeric, value used in the thresholding of the proportion of assocation, if non specificed set up as 1/sqrt(2*log(sample_size))}
 
 \item{para}{logical parameter for parallelization, if not specified, set at FALSE by default.}
 
@@ -49,8 +48,9 @@ A named vector. The first position contains the estimated value of the Lambda st
 Perform a wavelet screening of a locus for a given phenotype and a specified level of resolution
 }
 \details{
-The Wavelet_screening function computes the likelihood ratio used for testing the significance of a genetic region. In addition, it computes the proportion of wavelet coefficients associated by the level of resolution and the Beta used for this estimation. All the details of the computation can be found in our paper, preliminarily titled "Wavelet screening: a novel look to GWAS data.".
-
+The Wavelet_screening function computes the likelihood ratio used for testing the significance of a genetic region. In addition, it computes
+the proportion of wavelet coefficients associated by the level of resolution and the Beta used for this estimation. All the details
+of the computation can be found in our paper, preliminarily titled "Wavelet screening: a novel look to GWAS data.".
 }
 \examples{
 \dontrun{
@@ -65,13 +65,13 @@ my_bp <- sort(sample(1:1000000, size=5000,replace = FALSE))
 #Three different bump signals
 #############################
 my_functions <-data.frame(f0 = c(rep(0,400000),rep(0,200000),rep(0,400000)),
-                          f1 = c(rep(0,400000),rep(1,200000),rep(0,400000)) ,
-                          f2=c(rep(0,400000),rep(2,200000),rep(0,400000)))
+                         f1 = c(rep(0,400000),rep(1,200000),rep(0,400000)) ,
+                         f2=c(rep(0,400000),rep(2,200000),rep(0,400000)))
 
 
 library(gridExtra)
 ###########################
-#Minor allele frequency 30%
+#Minor allele frequency 30\%
 ###########################
 MAF=0.3
 sampl_schem <- c((1-MAF)^2,2*MAF*(1-MAF),MAF^2)
@@ -85,37 +85,36 @@ n_size=4000
 type_fn <-sample(0:2,replace = TRUE,size=n_size,  prob=  sampl_schem  )
 
 
-genotype <-  matrix(my_functions[my_bp,2 ], ncol=1 ) %*%t(matrix(type_fn,ncol=1))
-genotype <- genotype+ rnorm(dim(genotype)[1]*dim(genotype)[2],sd=0.1)
+genotype <-  matrix(my_functions[my_bp,2 ], ncol=1 ) \%*\%t(matrix(type_fn,ncol=1))
 #dim(genotype)= nSNP, nind
 
 ###############################################################
-#Generate a phenotype with variance explained by genotype =0.5%
+#Generate a phenotype with variance explained by genotype =0.5\%
 ###############################################################
 varexp=0.005
 var_noise <- (1-varexp)*var(sample(0:2,replace = TRUE,size=10000,
-                                   prob=sampl_schem ))/varexp
+                                  prob=sampl_schem ))/varexp
 Y <-  rnorm(n=n_size,sd=sqrt(var_noise)) +type_fn
 df <- data.frame(y=Y,genotype =factor(type_fn))
 P1 <- ggplot(df,aes(y=y,x=genotype))+
-  geom_boxplot()+
-  xlab("Type of genotype")+
-  theme(axis.text=element_text(size=12),
-        axis.title=element_text(size=14,face="bold"))+
-  ylab("Simulated Phenotype")+
-  theme_bw()+
-  ggtitle("Variation of the phenotype\ndepending of the genotype, \nVariance explained =0.5%")
+ geom_boxplot()+
+ xlab("Type of genotype")+
+ theme(axis.text=element_text(size=12),
+       axis.title=element_text(size=14,face="bold"))+
+ ylab("Simulated Phenotype")+
+ theme_bw()+
+ ggtitle("Variation of the phenotype\n depending of the genotype, \n Variance explained =0.5\%")
 
 df <- data.frame(bp= rep(my_bp,3),y=c(my_functions[my_bp,1],my_functions[my_bp,2],my_functions[my_bp,3]),
-                 mycol = factor(c(rep("f0",length(my_bp)),rep("f1",length(my_bp)),rep("f2",length(my_bp))) ) )
+                mycol = factor(c(rep("f0",length(my_bp)),rep("f1",length(my_bp)),rep("f2",length(my_bp))) ) )
 
 P2 <- ggplot(df,aes(y=y,x=bp,color=mycol))+
-  geom_point(size=1)+
-  xlab("Base pair")+
-  ylab("Number of variants")+
-  theme_bw()+
-  theme(legend.title=element_blank())+
-  ggtitle("Three different kind of genotype signal")
+ geom_point(size=1)+
+ xlab("Base pair")+
+ ylab("Number of variants")+
+ theme_bw()+
+ theme(legend.title=element_blank())+
+ ggtitle("Three different kind of genotype signal")
 
 grid.arrange(P1,P2,ncol=2)
 
@@ -123,7 +122,7 @@ grid.arrange(P1,P2,ncol=2)
 #Wavelet screening
 ##################
 res <- Wavelet_screening( Y,loci=genotype,bp=my_bp,
-                          lev_res=6)
+                         lev_res=6)
 res
 #Value of the test statistics
 res[c("L_h","min_ph_pv")]
@@ -152,13 +151,13 @@ th <-  res[c("L_h")]+lambda*res["min_ph_pv"]
 
 df <- data.frame(Th = Th,type = factor( c(rep("Null",length(Th)))) )
 ggplot(df,aes(Th,fill=type))+
-  xlim(c(min(c(Th,th)),max(Th,th)))+
-  geom_density()+
-  guides(fill=FALSE)+
-  geom_point(aes(x=th, y=0), colour="red")+theme(legend.position="none")+
-  geom_text(label="Value of the test statistics", x=th, y=0.001)+
-  geom_text(label="Null distribution", x=mean(Th), y=0.001)+
-  theme_bw()
+ xlim(c(min(c(Th,th)),max(Th,th)))+
+ geom_density()+
+ guides(fill=FALSE)+
+ geom_point(aes(x=th, y=0), colour="red")+theme(legend.position="none")+
+ geom_text(label="Value of the test statistics", x=th, y=0.001)+
+ geom_text(label="Null distribution", x=mean(Th), y=0.001)+
+ theme_bw()
 ##############
 #Visualisation
 ##############

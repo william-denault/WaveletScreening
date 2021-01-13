@@ -1,9 +1,11 @@
 ---
 title: "Wavelet Screening applied to DNA methylation"
-author: "William R.P. Denault et al."
+author: "William R.P.Denault et al."
 date: "12/01/2021"
 output:
   html_document: default
+  pdf_document: default
+  word_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -17,7 +19,7 @@ Loading the data and recoding the phenotype from factor to numeric.
 
 
 ```{r cars}
-
+library(WaveletScreening)
 load("simulated_data.Rdata")
 colon.state[1:4]
 pheno <- as.numeric(colon.state)-1
@@ -103,6 +105,9 @@ Sim <- Simu_null_emp(res=res,
                      base_shrink = 1/26,
                      size=100000#Number of simulations required
 )
+
+
+
 proc.time()  -tt #total running time
 plot( Sim[,1], Sim[,2])
 ```

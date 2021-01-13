@@ -8,26 +8,29 @@ Simu_null_proxy(
   Y,
   confounder,
   lev_res,
-  size,
-  sigma_b,
+  size = 10000,
+  sigma_b = NA,
   base_shrink,
-  print = TRUE
+  coeftype = "c",
+  verbose = TRUE
 )
 }
 \arguments{
-\item{Y}{a vector of numeric values used in the wavelet screaming function for association (a phenotype or simulated phenotype with the same distribution).}
+\item{Y}{a vector of numeric values used in the wavelet screening function for association (a phenotype or simulated phenotype with the same distribution).}
 
 \item{confounder}{the confounding matrix with the same sample order as Y. The intercept should not be included if missing will generate an intercept matrix.}
 
 \item{lev_res}{the level of resolution in the wavelet transform}
 
-\item{size}{number of simulation to be performed}
+\item{size}{number of simulation to be performed. If not specified set at 10000}
 
 \item{sigma_b}{the parameter of the NIG prior used for the Betas computation.}
 
 \item{base_shrink}{numeric, value used in the thresholding of the proportion of assocation, if non specificed set up as 1/sqrt(2*log(sample_size)}
 
-\item{print}{logical parameter set as TRUE, if TRUE sends a message when 10\% of the simulations have been completed.}
+\item{coeftype}{type of wavelet coefficient used for the screening (choice "c" or "d"). If missing set as "c"}
+
+\item{verbose}{logical parameter, set as TRUE by default. ID}
 }
 \value{
 The simulation under the null of the two test statistics used to build the final test (i.e., L_h and min(ph,pv))

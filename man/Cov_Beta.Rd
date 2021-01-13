@@ -22,7 +22,7 @@ A matrix variance covariance matrix
 Compute posterior variance Beta value from Bayesian linear regression
 }
 \details{
-The Wavelet_screaming performed reverse regression so variance for all posterior distribution are equal.
+The Wavelet_screening performed reverse regression so variance for all posterior distribution are equal.
 }
 \examples{
 \dontrun{

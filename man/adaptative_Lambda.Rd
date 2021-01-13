@@ -20,7 +20,7 @@ internal function objective function for sub trees.
 \examples{
 \dontrun{
 
-#using res for the Wavelet_screaming exemple
+#using res for the Wavelet_screening exemple
 
 
 sub_analysis <- function(res, lev_res )

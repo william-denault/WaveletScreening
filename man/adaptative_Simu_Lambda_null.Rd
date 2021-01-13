@@ -19,7 +19,7 @@ adaptative_Simu_Lambda_null(nsimu, lambda, lev_res, ncp, sub, thresh)
 Simulation of Lambda null distribution.
 }
 \details{
-Use the theoretical null distribution of the generated Bayes factor to perform simulation of null distriution of the test statistics of the Wavelet screaming procedure.
+Use the theoretical null distribution of the generated Bayes factor to perform simulation of null distriution of the test statistics of the Wavelet screening procedure.
 }
 \references{
 Quan Zhou and Yongtao Guan, On the Null Distribution of Bayes Factors in linear Regression, Journal of the American Statistical Association, 518, 2017.

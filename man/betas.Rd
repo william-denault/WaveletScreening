@@ -2,9 +2,9 @@
 % Please edit documentation in R/betas.R
 \name{betas}
 \alias{betas}
-\title{Compute Beta value from Bayesian linear regression}
+\title{Compute Beta value from Frequentist or Bayesian linear regression}
 \usage{
-betas(y, x, confounder, sigma_b, all)
+betas(y, x, confounder, sigma_b = NA, all)
 }
 \arguments{
 \item{y}{phenotype vector/variable of interest, has to be numeric.}
@@ -13,7 +13,7 @@ betas(y, x, confounder, sigma_b, all)
 
 \item{confounder}{the confounding matrix with the same sample order as Y. The intercept should not be included, if missing will generate a intercept matrix.}
 
-\item{sigma_b}{the parameter of the NIG prior used for the Bayes Factor computation. We advised to set this value between 0.1 and 0.2}
+\item{sigma_b}{the parameter of the NIG prior used for the Beta computation, set as NA by default. If not provided, performs a frequentist modeling}
 
 \item{all}{logical, if set as TRUE return all the Beta value (including the ones form the confounding factors). If set as FALSE only return the estimate for x, set as FALSE if missing.}
 }
@@ -24,9 +24,9 @@ A named vector. First position the estimated value of the Lambda statistics, the
 Compute Beta value from Bayesian linear regression
 }
 \details{
-The Wavelet_screaming function computes the Likelihood ratio used for testing significance of a genetic region. In addition it computes
+The Wavelet_screening function computes the Likelihood ratio used for testing significance of a genetic region. In addition it computes
 the porportion of wavelets coefficients associated by level of resolution, and the Bayes factor used for this estimation. All the details
-of the computation can be found in our paper "Wavelet Screaming: a novel look to GWAS data"
+of the computation can be found in our paper "Wavelet screening: a novel look to GWAS data"
 }
 \examples{
 \dontrun{

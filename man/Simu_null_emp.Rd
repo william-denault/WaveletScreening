@@ -9,21 +9,21 @@ Simu_null_emp(
   smp_size,
   lev_res,
   coeftype,
-  size,
+  size = 10000,
   base_shrink,
   print = TRUE
 )
 }
 \arguments{
-\item{res}{an output of Wavelet_screaming function. The user can also provide a matrix of results of Wavelet_screaming (from the same analysis), where the results have been concatenated by row (rbind).}
+\item{res}{an output of Wavelet_screening function. The user can also provide a matrix of results of Wavelet_screening (from the same analysis), where the results have been concatenated by row (rbind).}
 
-\item{smp_size}{Sample size from the main run of Wavelet Screaming}
+\item{smp_size}{Sample size from the main run of Wavelet screening}
 
 \item{lev_res}{the level of resolution in the wavelet transform}
 
-\item{coeftype}{type of wavelet coefficient used for the screening (choice "c" or "d"). If missing set as "d"}
+\item{coeftype}{type of wavelet coefficient used for the screening (choice "c" or "d"). If missing set as "c"}
 
-\item{size}{number of simulation to be performed}
+\item{size}{number of simulation to be performed. If not specified set at 10000}
 
 \item{base_shrink}{numeric, value used in the thresholding of the proportion of assocation, if non specificed set up as 1/sqrt(2*log(sample_size)}
 

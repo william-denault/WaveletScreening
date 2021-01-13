@@ -11,7 +11,7 @@ Search_lambda(Sim, plot = FALSE)
 
 \item{lev_res}{the level of resolution in the wavelet transform}
 
-\item{emp_cov}{Empirical covariance matrix of the beta values. It can be computed using several results of the wavelet screaming using the betas values for different loci. If missing the function computes an approximation of the covariance matrix, this leads to a loss of power and a more conservative test statistics.}
+\item{emp_cov}{Empirical covariance matrix of the beta values. It can be computed using several results of the wavelet screening using the betas values for different loci. If missing the function computes an approximation of the covariance matrix, this leads to a loss of power and a more conservative test statistics.}
 
 \item{size}{number of simulation to be performed}
 
