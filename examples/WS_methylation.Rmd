@@ -3,14 +3,14 @@ title: "Wavelet Screening applied to DNA methylation"
 author: "William R.P.Denault et al."
 date: "12/01/2021"
 output:
-  html_document: default
-  pdf_document: default
   word_document: default
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-
+set.seed(66)
 ```
 
 ## Preparing the data
@@ -133,7 +133,7 @@ res[,1]   <-  - ( ( (-res[,1] + shifting)^bc_lambda$lambda) -1  )/bc_lambda$lamb
 When the Box-Cox transform is done, we can then compute the p-value of each region as follows.
 ```{r,message=FALSE }
 lambda <- Search_lambda(Sim,plot=TRUE)#optimizing the lambda* value
-
+#lambda <- 15
 Th <- Sim[,c("L_h")]+lambda*Sim[,c("min_ph_pv")] #Computing the null distribution of the test statistic 
 muv <- median(Th,na.rm = TRUE) #estimating the parameter of the null distribution
 sdv <- mad(Th,na.rm = TRUE)
